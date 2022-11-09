@@ -1,0 +1,48 @@
+@import "~antd/dist/antd.css";
+
+/* .dynamic-delete-button {
+    position: relative;
+    top: 4px;
+    margin: 0 8px;
+    color: #999;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .dynamic-delete-button:hover {
+    color: #777;
+  }
+  .dynamic-delete-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  } */
+.site-layout {
+  /* background-color: #00152a; */
+}
+
+.logo-box {
+  /* borderBottom: "1px solid gray", */
+  /* borderRight: "1px solid gray",  */
+  min-height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* border-bottom: 1px solid gray; */
+}
+
+.header {
+  /* background-color: rgb(75, 82, 75); */
+  color: white;
+  font-family: "Poppins";
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+.trigger {
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.3s;
+  padding-left: 10px;
+}
