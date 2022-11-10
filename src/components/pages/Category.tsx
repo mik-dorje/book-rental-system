@@ -134,7 +134,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    console.log("First data fetch");
+    console.log("Categories fetched");
   }, []);
 
   useEffect(() => {
@@ -212,7 +212,7 @@ const App: React.FC = () => {
       const response = await axios.post(
         CATEGORY_URL,
         JSON.stringify({
-          categoryId: values.categoryId ? values.categoryId : data.length + 1,
+          categoryId: data.length + 1,
           categoryName: values.categoryName,
           categoryDescription: values.categoryDescription,
         }),
@@ -246,13 +246,10 @@ const App: React.FC = () => {
 
   const columns = [
     {
-      title: "ID",
+      title: "S.N",
       dataIndex: "categoryId",
       width: "15%",
       editable: true,
-      render: (_: any, record: DataType) => (
-        <Link to={record.key}>{record.key}</Link>
-      ),
     },
     {
       title: "Category",
@@ -375,7 +372,7 @@ const App: React.FC = () => {
             // onFinishFailed={onFinishFailed}
             // autoComplete="off"
           >
-            <Form.Item
+            {/* <Form.Item
               label="ID"
               name="categoryId"
               rules={[
@@ -383,7 +380,7 @@ const App: React.FC = () => {
               ]}
             >
               <Input type="number" />
-            </Form.Item>
+            </Form.Item> */}
             <Form.Item
               label="Name"
               name="categoryName"
@@ -473,6 +470,7 @@ const App: React.FC = () => {
                 onChange: cancel,
                 pageSize: 5,
               }}
+              scroll={{ x: "40" }}
             />
           ) : (
             <div className="loader-box">
