@@ -1,11 +1,9 @@
 import {
   Button,
-  Col,
   Form,
   Input,
   InputNumber,
   message,
-  Modal,
   Popconfirm,
   Row,
   Space,
@@ -13,29 +11,34 @@ import {
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
-import axios from "../../api/axios";
+import axios from "../../../api/axios";
 import {
   SearchOutlined,
   PlusCircleFilled,
   DeleteFilled,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import MemberForm from "./MemberForm";
 
-const CATEGORY_URL = "bookrental/category";
+const MEMBER_URL = "bookrent/member";
 
-interface DataType {
+export interface MemberDataType {
   key: string;
-  categoryId: number | null;
-  categoryName: string;
-  categoryDescription: any;
+  memberId: number | null;
+  email: string;
+  name: string;
+  mobileNo: string;
+  address: string;
 }
 
-const originData: DataType[] = [
+export const originalMemberData: MemberDataType[] = [
   {
     key: "",
-    categoryId: null,
-    categoryName: "",
-    categoryDescription: "",
+    memberId: null,
+    email: "",
+    name: "",
+    mobileNo: "",
+    address: "",
   },
 ];
 
@@ -44,7 +47,7 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   dataIndex: string;
   title: any;
   inputType: "number" | "text";
-  record: DataType;
+  record: MemberDataType;
   index: number;
   children: React.ReactNode;
 }
@@ -104,8 +107,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
 const App: React.FC = () => {
   const [form] = Form.useForm();
-  const [formModal] = Form.useForm();
-  const [data, setData] = useState<DataType[]>(originData);
+  const [data, setData] = useState<MemberDataType[]>(originalMemberData);
   const [editingKey, setEditingKey] = useState("");
   const [loaded, setLoaded] = useState(false);
 
@@ -113,18 +115,16 @@ const App: React.FC = () => {
   const [tableData, setTableData] = useState<any>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const isEditing = (record: DataType) => record.key === editingKey;
+  const isEditing = (record: MemberDataType) => record.key === editingKey;
 
   const fetchData = async () => {
-    const result = await axios(CATEGORY_URL);
+    const result = await axios(MEMBER_URL);
     console.log(result.data.data);
     // const data = result.data.map(({ username, email, phone, website, company, ...rest }) => rest);
-    const dataObj = result.data.data.map((object: DataType) => {
+    const dataObj = result.data.data.map((object: MemberDataType) => {
       return {
-        key: object?.categoryId?.toString(),
-        categoryId: object.categoryId,
-        categoryName: object.categoryName,
-        categoryDescription: object.categoryDescription,
+        ...object,
+        key: object?.memberId?.toString(),
       };
     });
     setData(dataObj);
@@ -134,7 +134,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    console.log("Categories fetched");
+    console.log("Members fetched");
   }, []);
 
   useEffect(() => {
@@ -142,43 +142,46 @@ const App: React.FC = () => {
     if (typedWord) {
       const resultArray = data?.filter(
         (item) =>
-          item?.categoryId
+          item?.memberId
             ?.toString()
             .toLowerCase()
             .includes(typedWord.toLowerCase()) ||
-          item?.categoryName?.toLowerCase().includes(typedWord.toLowerCase()) ||
-          item?.categoryDescription
-            ?.toLowerCase()
-            .includes(typedWord.toLowerCase())
+          item?.name?.toLowerCase().includes(typedWord.toLowerCase()) ||
+          item?.email?.toLowerCase().includes(typedWord.toLowerCase()) ||
+          item?.mobileNo?.toLowerCase().includes(typedWord.toLowerCase()) ||
+          item?.address?.toLowerCase().includes(typedWord.toLowerCase())
       );
       setTableData(resultArray);
     }
   }, [typedWord, data]);
 
-  const edit = (record: Partial<DataType> & { key: React.Key }) => {
+  const edit = (record: Partial<MemberDataType> & { key: React.Key }) => {
     form.setFieldsValue({
-      categoryId: "",
-      CategoryName: "",
-      CategoryDescription: "",
+      authorId: null,
+      authorName: "",
+      authorEmail: "",
+      authorMobile: "",
       ...record,
     });
     setEditingKey(record.key);
   };
 
-  const handleDelete = (record: Partial<DataType> & { key: React.Key }) => {
+  const handleDelete = (
+    record: Partial<MemberDataType> & { key: React.Key }
+  ) => {
     const newData = data.filter((item) => item.key !== record.key);
     setData(newData);
     console.log(record);
 
     message.success({
-      content: `${record.categoryName} removed !`,
+      content: `${record.name} removed !`,
       icon: <DeleteFilled />,
     });
   };
 
   const update = async (key: React.Key) => {
     try {
-      const row = (await form.validateFields()) as DataType;
+      const row = (await form.validateFields()) as MemberDataType;
       const newData = [...data];
       const index = newData.findIndex((item) => key === item.key);
       if (index > -1) {
@@ -205,72 +208,46 @@ const App: React.FC = () => {
     setEditingKey("");
   };
 
-  const onFinish = async (values: any) => {
-    console.log({ values });
-
-    try {
-      const response = await axios.post(
-        CATEGORY_URL,
-        JSON.stringify({
-          categoryId: data.length + 1,
-          categoryName: values.categoryName,
-          categoryDescription: values.categoryDescription,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-          // withCredentials: true,
-        }
-      );
-      console.log(JSON.stringify(response?.data));
-      setData([
-        ...data,
-        {
-          key: values.categoryId ? values.categoryId : data.length + 1,
-          categoryId: values.categoryId ? values.categoryId : data.length + 1,
-          categoryName: values.categoryName,
-          categoryDescription: values.categoryDescription,
-        },
-      ]);
-
-      formModal.resetFields();
-      setModalOpen(false);
-      message.success(`${values.categoryName} added !`);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const handleModalCancel = () => {
-    setModalOpen(false);
-  };
-
   const columns = [
     {
       title: "S.N",
-      dataIndex: "categoryId",
-      width: "15%",
+      dataIndex: "memberId",
+      width: "10%",
       editable: true,
+      // fixed: "left",
     },
     {
-      title: "Category",
-      dataIndex: "categoryName",
-      width: "20%",
+      title: "Member",
+      dataIndex: "name",
+      width: "15%",
       editable: true,
-      render: (_: any, record: DataType) => (
-        <Link to={record.key}>{record.categoryName}</Link>
+      render: (_: any, record: MemberDataType) => (
+        <Link to={record.key}>{record.name}</Link>
       ),
     },
     {
-      title: "Description",
-      dataIndex: "categoryDescription",
-      width: "20%",
+      title: "Email",
+      dataIndex: "email",
+      width: "10%",
+      editable: true,
+    },
+    {
+      title: "Mobile",
+      dataIndex: "mobileNo",
+      width: "10%",
+      editable: true,
+    },
+    {
+      title: "Address",
+      dataIndex: "address",
+      width: "10%",
       editable: true,
     },
     {
       title: "Action",
       dataIndex: "operation",
       width: "20%",
-      render: (_: any, record: DataType) => {
+      render: (_: any, record: MemberDataType) => {
         const editable = isEditing(record);
         return editable ? (
           <Space size="middle">
@@ -338,7 +315,7 @@ const App: React.FC = () => {
     }
     return {
       ...col,
-      onCell: (record: DataType) => ({
+      onCell: (record: MemberDataType) => ({
         record,
         inputType: col.dataIndex === "id" ? "number" : "text",
         dataIndex: col.dataIndex,
@@ -351,80 +328,12 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <div className="main-page">
-        <Modal
-          title="Category Entry"
-          centered
-          open={modalOpen}
-          onOk={() => setModalOpen(false)}
-          onCancel={() => setModalOpen(false)}
-          okButtonProps={{ hidden: true }}
-          cancelButtonProps={{ hidden: true }}
-          style={{ boxShadow: "0 0 8px 2px #e5e1e0" }}
-          width={600}
-        >
-          <Form
-            form={formModal}
-            name="basic"
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 14 }}
-            initialValues={{ remember: false }}
-            onFinish={onFinish}
-            // onFinishFailed={onFinishFailed}
-            // autoComplete="off"
-          >
-            {/* <Form.Item
-              label="ID"
-              name="categoryId"
-              rules={[
-                { required: false, message: "Please input category ID!" },
-              ]}
-            >
-              <Input type="number" />
-            </Form.Item> */}
-            <Form.Item
-              label="Name"
-              name="categoryName"
-              rules={[
-                { required: true, message: "Please input category name!" },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Description"
-              name="categoryDescription"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input category description!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Row>
-              <Col xs={{ offset: 9 }}>
-                <Space size="middle">
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      style={{ width: "75px" }}
-                    >
-                      Add
-                    </Button>
-                  </Form.Item>
-                  <Form.Item>
-                    <Button type="primary" danger onClick={handleModalCancel}>
-                      Cancel
-                    </Button>
-                  </Form.Item>
-                </Space>
-              </Col>
-            </Row>
-          </Form>
-        </Modal>
+        <MemberForm
+          data={data}
+          setData={setData}
+          modalOpen={modalOpen}
+          setModalOpen={setModalOpen}
+        />
 
         <Form form={form} component={false} initialValues={{ remember: false }}>
           <Row justify="space-between">
@@ -435,12 +344,12 @@ const App: React.FC = () => {
                 onClick={() => setModalOpen(true)}
               >
                 <Typography.Text strong style={{ color: "white" }}>
-                  Category
+                  Member
                 </Typography.Text>
               </Button>
             </Form.Item>
-            <Typography.Title level={5} style={{ color: "black" }}>
-              CATEGORIES
+            <Typography.Title level={5} style={{ zIndex: 2, color: "white" }}>
+              MEMBERS
             </Typography.Title>
             <Space size="small" direction="horizontal">
               <Form.Item name="search">
@@ -470,7 +379,7 @@ const App: React.FC = () => {
                 onChange: cancel,
                 pageSize: 5,
               }}
-              scroll={{ x: "40" }}
+              scroll={{ x: "40%" }}
             />
           ) : (
             <div className="loader-box">

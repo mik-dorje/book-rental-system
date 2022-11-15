@@ -1,17 +1,18 @@
 import Icon, {
   ApiFilled,
   BookFilled,
-  CodeSandboxCircleFilled,
+  FallOutlined,
   FolderOpenFilled,
   IdcardFilled,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  RiseOutlined,
   SkinFilled,
   UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Divider, Layout, Menu, Typography } from "antd";
-import React, { useState } from "react";
+import { Avatar, Layout, Menu, Typography } from "antd";
+import React, { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import logo from "../images/3dlogo.png";
 
@@ -48,14 +49,34 @@ const menuItems = [
     label: "Book Transaction",
     path: "/bookrent/booktransaction",
   },
+  {
+    key: "6",
+    icon: RiseOutlined,
+    label: "Rent Book",
+    path: "/bookrent/booktransaction/rent-book",
+  },
+  {
+    key: "7",
+    icon: FallOutlined,
+    label: "Return Book",
+    path: "/bookrent/booktransaction/return-book",
+  },
 ];
 
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
 
+  // Find another way
+  useEffect(() => {
+    if (window.innerWidth < 684) {
+      setCollapsed(true);
+    }
+  }, []);
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
+        className="my-drawer"
         style={{ borderRight: "1px solid gray" }}
         trigger={null}
         collapsible
@@ -70,7 +91,6 @@ const App: React.FC = () => {
           />
         </div> */}
 
-        {/* <Divider /> */}
         <div
           style={{
             display: "flex",
@@ -144,7 +164,7 @@ const App: React.FC = () => {
             padding: "10px",
             minHeight: `calc(100vh - 80px)`,
             borderRadius: "6px",
-            backgroundColor: "#eaeaea",
+            // backgroundColor: "#eaeaea",
             border: "1px solid gray",
             textAlign: "center",
           }}

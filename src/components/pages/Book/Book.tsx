@@ -1,11 +1,9 @@
 import {
   Button,
-  Col,
   Form,
   Input,
   InputNumber,
   message,
-  Modal,
   Popconfirm,
   Row,
   Space,
@@ -13,31 +11,44 @@ import {
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
-import axios from "../../api/axios";
+import axios from "../../../api/axios";
 import {
   SearchOutlined,
   PlusCircleFilled,
   DeleteFilled,
 } from "@ant-design/icons";
+import BookForm from "./BookForm";
 import { Link } from "react-router-dom";
 
-const AUTHOR_URL = "bookrental/author";
+const BOOK_URL = "/bookrental/book";
 
-interface DataType {
+export interface BookDataType {
   key: string;
-  authorId: number | null;
-  authorName: string;
-  authorEmail: string;
-  authorMobile: string;
+  bookId: number;
+  bookName: string;
+  noOfPages: number;
+  isbn: string;
+  rating: number;
+  stockCount: number;
+  publishedDate: string;
+  categoryId: number;
+  authorId: number[];
+  bookImage: string;
 }
 
-const originData: DataType[] = [
+export const originalBookData: BookDataType[] = [
   {
     key: "",
-    authorId: null,
-    authorName: "",
-    authorEmail: "",
-    authorMobile: "",
+    bookId: 0,
+    bookName: "bookname",
+    noOfPages: 0,
+    isbn: "isbn",
+    rating: 0,
+    stockCount: 0,
+    publishedDate: new Date().toISOString(),
+    categoryId: 0,
+    authorId: [0],
+    bookImage: "bookImage",
   },
 ];
 
@@ -46,7 +57,7 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   dataIndex: string;
   title: any;
   inputType: "number" | "text";
-  record: DataType;
+  record: BookDataType;
   index: number;
   children: React.ReactNode;
 }
@@ -106,28 +117,24 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
 const App: React.FC = () => {
   const [form] = Form.useForm();
-  const [formModal] = Form.useForm();
-  const [data, setData] = useState<DataType[]>(originData);
+  const [data, setData] = useState<BookDataType[]>(originalBookData);
   const [editingKey, setEditingKey] = useState("");
   const [loaded, setLoaded] = useState(false);
 
   const [typedWord, setTypedWord] = useState<any>(null);
-  const [tableData, setTableData] = useState<any>(null);
+  const [tableData, setTableData] = useState<BookDataType[]>(originalBookData);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const isEditing = (record: DataType) => record.key === editingKey;
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const isEditing = (record: BookDataType) => record.key === editingKey;
 
   const fetchData = async () => {
-    const result = await axios(AUTHOR_URL);
+    const result = await axios(BOOK_URL);
     console.log(result.data.data);
     // const data = result.data.map(({ username, email, phone, website, company, ...rest }) => rest);
-    const dataObj = result.data.data.map((object: DataType) => {
+    const dataObj = result.data.data.map((object: BookDataType) => {
       return {
-        key: object?.authorId?.toString(),
-        authorId: object.authorId,
-        authorName: object.authorName,
-        authorEmail: object.authorEmail,
-        authorMobile: object.authorMobile,
+        ...object,
+        key: object?.bookId?.toString(),
       };
     });
     setData(dataObj);
@@ -137,51 +144,49 @@ const App: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    console.log("Categories fetched");
+    console.log("Books fetched");
   }, []);
 
   useEffect(() => {
     setTableData(data);
-    if (typedWord) {
-      const resultArray = data?.filter(
-        (item) =>
-          item?.authorId
-            ?.toString()
-            .toLowerCase()
-            .includes(typedWord.toLowerCase()) ||
-          item?.authorName?.toLowerCase().includes(typedWord.toLowerCase()) ||
-          item?.authorEmail?.toLowerCase().includes(typedWord.toLowerCase()) ||
-          item?.authorMobile?.toLowerCase().includes(typedWord.toLowerCase())
-      );
-      setTableData(resultArray);
-    }
+    // if (typedWord) {
+    //   const resultArray = data?.filter(
+    //     (item) =>
+    //       item?.categoryId
+    //         ?.toString()
+    //         .toLowerCase()
+    //         .includes(typedWord.toLowerCase()) ||
+    //       item?.categoryName?.toLowerCase().includes(typedWord.toLowerCase()) ||
+    //       item?.categoryDescription
+    //         ?.toLowerCase()
+    //         .includes(typedWord.toLowerCase())
+    //   );
+    //   setTableData(resultArray);
+    // }
   }, [typedWord, data]);
 
-  const edit = (record: Partial<DataType> & { key: React.Key }) => {
+  const edit = (record: Partial<BookDataType> & { key: React.Key }) => {
     form.setFieldsValue({
-      authorId: null,
-      authorName: "",
-      authorEmail: "",
-      authorMobile: "",
+      // categoryId: "",
+      // CategoryName: "",
+      // CategoryDescription: "",
       ...record,
     });
     setEditingKey(record.key);
   };
 
-  const handleDelete = (record: Partial<DataType> & { key: React.Key }) => {
+  const handleDelete = (record: Partial<BookDataType> & { key: React.Key }) => {
     const newData = data.filter((item) => item.key !== record.key);
     setData(newData);
-    console.log(record);
-
     message.success({
-      content: `${record.authorName} removed !`,
+      content: `${record.bookName} removed !`,
       icon: <DeleteFilled />,
     });
   };
 
   const update = async (key: React.Key) => {
     try {
-      const row = (await form.validateFields()) as DataType;
+      const row = (await form.validateFields()) as BookDataType;
       const newData = [...data];
       const index = newData.findIndex((item) => key === item.key);
       if (index > -1) {
@@ -208,80 +213,40 @@ const App: React.FC = () => {
     setEditingKey("");
   };
 
-  const onFinish = async (values: any) => {
-    console.log({ values });
-
-    try {
-      const response = await axios.post(
-        AUTHOR_URL,
-        JSON.stringify({
-          authorId: data.length + 1,
-          authorName: values.authorName,
-          authorEmail: values.authorEmail,
-          authorMobile: values.authorMobile,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-          // withCredentials: true,
-        }
-      );
-      console.log(JSON.stringify(response?.data));
-      setData([
-        ...data,
-        {
-          key: values.authorId ? values.authorId : data.length + 1,
-          authorId: values.authorId ? values.authorId : data.length + 1,
-          authorName: values.authorName,
-          authorEmail: values.authorEmail,
-          authorMobile: values.authorMobile,
-        },
-      ]);
-
-      formModal.resetFields();
-      setModalOpen(false);
-      message.success(`${values.authorName} added !`);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const handleModalCancel = () => {
-    setModalOpen(false);
-  };
-
   const columns = [
     {
       title: "S.N",
-      dataIndex: "authorId",
-      width: "15%",
+      dataIndex: "bookId",
+      // width: "5%",
       editable: true,
     },
     {
-      title: "Author",
-      dataIndex: "authorName",
-      width: "20%",
+      title: "Name",
+      dataIndex: "bookName",
+      // width: "10%",
       editable: true,
-      render: (_: any, record: DataType) => (
-        <Link to={record.key}>{record.authorName}</Link>
+      render: (_: any, record: BookDataType) => (
+        <Link to={record.key}>{record.bookName}</Link>
       ),
     },
     {
-      title: "Email",
-      dataIndex: "authorEmail",
-      width: "20%",
+      title: "ISBN",
+      dataIndex: "isbn",
+      // width: "10%",
       editable: true,
     },
     {
-      title: "Mobile",
-      dataIndex: "authorMobile",
-      width: "20%",
+      title: "Rating",
+      dataIndex: "rating",
+      // width: "5%",
       editable: true,
     },
+
     {
       title: "Action",
       dataIndex: "operation",
-      width: "20%",
-      render: (_: any, record: DataType) => {
+      width: "10%",
+      render: (_: any, record: BookDataType) => {
         const editable = isEditing(record);
         return editable ? (
           <Space size="middle">
@@ -349,7 +314,7 @@ const App: React.FC = () => {
     }
     return {
       ...col,
-      onCell: (record: DataType) => ({
+      onCell: (record: BookDataType) => ({
         record,
         inputType: col.dataIndex === "id" ? "number" : "text",
         dataIndex: col.dataIndex,
@@ -362,90 +327,13 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <div className="main-page">
-        <Modal
-          title="Author Entry"
-          centered
-          open={modalOpen}
-          onOk={() => setModalOpen(false)}
-          onCancel={() => setModalOpen(false)}
-          okButtonProps={{ hidden: true }}
-          cancelButtonProps={{ hidden: true }}
-          style={{ boxShadow: "0 0 8px 2px #e5e1e0" }}
-          width={600}
-        >
-          <Form
-            form={formModal}
-            name="basic"
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 14 }}
-            initialValues={{ remember: false }}
-            onFinish={onFinish}
-            // onFinishFailed={onFinishFailed}
-            // autoComplete="off"
-          >
-            {/* <Form.Item
-              label="ID"
-              name="authorId"
-              rules={[
-                { required: false, message: "Please input category ID!" },
-              ]}
-            >
-              <Input type="number" />
-            </Form.Item> */}
-            <Form.Item
-              label="Name"
-              name="authorName"
-              rules={[{ required: true, message: "Please input author name!" }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Email"
-              name="authorEmail"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input author email!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Mobile"
-              name="authorMobile"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input author mobile!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Row>
-              <Col xs={{ offset: 9 }}>
-                <Space size="middle">
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      style={{ width: "75px" }}
-                    >
-                      Add
-                    </Button>
-                  </Form.Item>
-                  <Form.Item>
-                    <Button type="primary" danger onClick={handleModalCancel}>
-                      Cancel
-                    </Button>
-                  </Form.Item>
-                </Space>
-              </Col>
-            </Row>
-          </Form>
-        </Modal>
+        {/* Book Entry Form Modal */}
+        <BookForm
+          data={data}
+          setData={setData}
+          modalOpen={modalOpen}
+          setModalOpen={setModalOpen}
+        />
 
         <Form form={form} component={false} initialValues={{ remember: false }}>
           <Row justify="space-between">
@@ -455,13 +343,13 @@ const App: React.FC = () => {
                 icon={<PlusCircleFilled style={{ fontSize: "18px" }} />}
                 onClick={() => setModalOpen(true)}
               >
-                <Typography.Text strong style={{ color: "white" }}>
-                  Author
+                <Typography.Text strong style={{ zIndex: 2, color: "white" }}>
+                  Book
                 </Typography.Text>
               </Button>
             </Form.Item>
-            <Typography.Title level={5} style={{ color: "black" }}>
-              AUTHORS
+            <Typography.Title level={5} style={{ zIndex: 2, color: "white" }}>
+              BOOKS
             </Typography.Title>
             <Space size="small" direction="horizontal">
               <Form.Item name="search">

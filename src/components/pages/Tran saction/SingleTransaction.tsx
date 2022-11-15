@@ -1,24 +1,26 @@
 import { Button } from "antd";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "../../api/axios";
+import axios from "../../../api/axios";
 import { useNavigate } from "react-router-dom";
 
-const MEMBER_URL = "bookrent/member";
+const TRANSACTION_URL = "bookrent/booktransaction";
 
-const SingleMember = () => {
+const SingleTransaction = () => {
   const params = useParams();
   const id = params.id;
   const navigate = useNavigate();
-  const [memberDetail, setmemberDetail] = useState(null);
+  const [transactionDetail, setTransactionDetail] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await axios(`${MEMBER_URL}/${id}`);
-      console.log(response.data.data);
+      const response = await axios(`${TRANSACTION_URL}/${id}`);
+      setTransactionDetail(response.data.data);
     };
     fetchData();
   }, [id]);
+
+  console.log(transactionDetail);
 
   return (
     <div>
@@ -30,9 +32,9 @@ const SingleMember = () => {
       >
         Back
       </Button>
-      <h3>MemberDetail: {id}</h3>
+      <h3>TransactionDetail: {id}</h3>
     </div>
   );
 };
 
-export default SingleMember;
+export default SingleTransaction;
