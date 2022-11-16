@@ -30,7 +30,7 @@ export interface AuthorDataType {
   authorMobile: string;
 }
 
-const originData: AuthorDataType[] = [
+export const originalAuthorData: AuthorDataType[] = [
   {
     key: "",
     authorId: null,
@@ -105,7 +105,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
 const App: React.FC = () => {
   const [form] = Form.useForm();
-  const [data, setData] = useState<AuthorDataType[]>(originData);
+  const [data, setData] = useState<AuthorDataType[]>(originalAuthorData);
   const [editingKey, setEditingKey] = useState("");
   const [loaded, setLoaded] = useState(false);
 
@@ -333,7 +333,7 @@ const App: React.FC = () => {
                 icon={<PlusCircleFilled style={{ fontSize: "18px" }} />}
                 onClick={() => setModalOpen(true)}
               >
-                <Typography.Text strong style={{  zIndex: 2, color: "white"}}>
+                <Typography.Text strong style={{ zIndex: 2, color: "white" }}>
                   Author
                 </Typography.Text>
               </Button>

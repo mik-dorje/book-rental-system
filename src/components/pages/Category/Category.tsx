@@ -29,7 +29,7 @@ export interface CategoryDataType {
   categoryDescription: any;
 }
 
-const originData: CategoryDataType[] = [
+export const originalCategoryData: CategoryDataType[] = [
   {
     key: "",
     categoryId: null,
@@ -103,7 +103,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
 const App: React.FC = () => {
   const [form] = Form.useForm();
-  const [data, setData] = useState<CategoryDataType[]>(originData);
+  const [data, setData] = useState<CategoryDataType[]>(originalCategoryData);
   const [editingKey, setEditingKey] = useState("");
   const [loaded, setLoaded] = useState(false);
 

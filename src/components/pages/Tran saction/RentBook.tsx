@@ -1,21 +1,15 @@
 import { RollbackOutlined, UploadOutlined } from "@ant-design/icons";
-import { render } from "@testing-library/react";
 import {
   Button,
   Col,
-  DatePicker,
-  DatePickerProps,
   Divider,
   Form,
   Input,
   message,
-  Modal,
   Row,
   Select,
   Space,
   Typography,
-  Upload,
-  UploadProps,
 } from "antd";
 import React, { useEffect, useState } from "react";
 import axios from "../../../api/axios";
@@ -25,18 +19,31 @@ import { originalMemberData } from "../Member/Member";
 
 const BOOK_URL = "/bookrental/book";
 const MEMBER_URL = "bookrent/member";
+const RENT_URL = "bookrent/booktransaction/rent-book";
 
-// interface ModalProps {
-//   data: BookDataType[];
-//   modalOpen: boolean;
-//   setData: React.Dispatch<React.SetStateAction<BookDataType[]>>;
-//   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-// }
+export interface RentDataType {
+  key: string;
+  bookId: number | null;
+  memberId: number | null;
+  rentType: string;
+  fromDate: string;
+  toDate: string;
+}
+
+export const originalRentData: RentDataType[] = [
+  {
+    key: "",
+    bookId: null,
+    fromDate: "",
+    toDate: "",
+    rentType: "",
+    memberId: null,
+  },
+];
 
 const RentBook = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const [base64Code, setBase64Code] = useState();
 
   const [books, setBooks] = useState(originalBookData);
   const [members, setMembers] = useState(originalMemberData);
@@ -61,44 +68,31 @@ const RentBook = () => {
   const onFinish = async (values: any) => {
     console.log({ values });
 
-    const newBookData = {
-      bookName: values.bookName,
-      rating: values.rating,
-      isbn: values.isbn,
-      noOfPages: values.noOfPages,
-      stockCount: values.stockCount,
-      // publishedDate: new Date().toISOString().slice(0, 10),
-      publishedDate: values.publishedDate._d.toISOString().slice(0, 10),
-      bookImage: base64Code,
-      // bookImage: values.bookgImage,
-      categoryId: values.categoryId,
-      authorId: values.authorId,
+    const newRentData = {
+      bookId: values.bookId,
+      fromDate: new Date().toISOString().slice(0, 10),
+      toDate: new Date(Date.now() + values.days * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10),
+      rentType: "RETURN",
+      memberId: values.memberId,
     };
-    console.log(newBookData);
+    console.log(newRentData);
 
     try {
-      const response = await axios.post(BOOK_URL, JSON.stringify(newBookData), {
+      const response = await axios.post(RENT_URL, JSON.stringify(newRentData), {
         headers: { "Content-Type": "application/json" },
         // withCredentials: true,
       });
       console.log(JSON.stringify(response?.data));
-      //   setData([
-      //     ...data,
-      //     {
-      //       key: values.bookId ? values.bookId : data.length + 1,
-      //       bookId: values.bookId,
-      //       bookName: values.bookName,
-      //       noOfPages: values.noOfPages,
-      //       isbn: values.isbn,
-      //       rating: values.rating,
-      //       stockCount: values.stockCount,
-      //       publishedDate: values.publishedDate._d.toISOString().slice(0, 10),
-      //       photo: values.photo,
-      //       categoryId: values.categoryId,
-      //       authorId: values.authorId,
-      //       bookImage: values.bookImage,
-      //     },
-      //   ]);
+
+      const oneBook = books.filter((book) => book.bookId === values.bookId)[0]
+        .bookName;
+      const oneMember = members.filter(
+        (member) => member.memberId === values.memberId
+      )[0].name;
+
+      message.success(`"${oneBook}" rented to ${oneMember}`);
 
       form.resetFields();
       //   setModalOpen(false);
@@ -118,17 +112,16 @@ const RentBook = () => {
     // console.log(`selected ${value}`);
   };
 
-  const singleSelectOptions = members.map((member) => {
+  const memberOptions = members.map((member) => {
     return {
       label: member.name,
       value: member.memberId,
     };
   });
 
-
   // For multiple books select
 
-  const MultiSelectoptions = books.map((book) => {
+  const bookOptions = books.map((book) => {
     return {
       label: book.bookName,
       value: book.bookId,
@@ -186,7 +179,7 @@ const RentBook = () => {
 
         <Form.Item
           label="Book"
-          name="book"
+          name="bookId"
           rules={[
             {
               required: false,
@@ -196,22 +189,20 @@ const RentBook = () => {
         >
           <Select
             showSearch
-            mode="multiple"
-            allowClear
             // style={{ width: "100%" }}
-            placeholder="Please select book"
+            placeholder="Please select member"
+            onChange={handleSingleSelect}
+            allowClear
             optionFilterProp="children"
-            // defaultValue={["a10", "c12"]}
-            onChange={handleMultipleSelect}
             filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
-            options={MultiSelectoptions}
+            options={bookOptions}
           />
         </Form.Item>
         <Form.Item
           label="Member"
-          name="member"
+          name="memberId"
           rules={[
             {
               required: false,
@@ -229,25 +220,17 @@ const RentBook = () => {
             filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
-            options={singleSelectOptions}
+            options={memberOptions}
           />
-        </Form.Item>
-        <Form.Item
-          label="Code"
-          name="code"
-          rules={[{ required: false, message: "Please input code!" }]}
-          style={{ width: "100%" }}
-        >
-          <Input type="string" />
         </Form.Item>
 
         <Form.Item
           label="Days"
-          name="rating"
+          name="days"
           rules={[
             {
               required: false,
-              message: "Please input rating!",
+              message: "Please input days!",
             },
           ]}
         >
