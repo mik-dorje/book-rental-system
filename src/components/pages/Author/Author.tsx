@@ -2,12 +2,12 @@ import {
   Button,
   Form,
   Input,
-  InputNumber,
   message,
   Popconfirm,
   Row,
   Space,
   Table,
+  Tooltip,
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
@@ -16,6 +16,10 @@ import {
   SearchOutlined,
   PlusCircleFilled,
   DeleteFilled,
+  DeleteOutlined,
+  EditOutlined,
+  RollbackOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import AuthorForm from "./AuthorForm";
@@ -23,8 +27,8 @@ import AuthorForm from "./AuthorForm";
 const AUTHOR_URL = "bookrental/author";
 
 export interface AuthorDataType {
-  key: string;
-  authorId: number | null;
+  // key: string;
+  authorId: number;
   authorName: string;
   authorEmail: string;
   authorMobile: string;
@@ -32,8 +36,8 @@ export interface AuthorDataType {
 
 export const originalAuthorData: AuthorDataType[] = [
   {
-    key: "",
-    authorId: null,
+    // key: "",
+    authorId: 0,
     authorName: "",
     authorEmail: "",
     authorMobile: "",
@@ -61,8 +65,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
   ...restProps
 }) => {
   const inputNode =
-    inputType === "number" ? (
-      <InputNumber
+    dataIndex === "authorId" ? (
+      <Input
+        disabled
         style={{
           width: "90%",
           backgroundColor: "#fff",
@@ -106,33 +111,33 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const App: React.FC = () => {
   const [form] = Form.useForm();
   const [data, setData] = useState<AuthorDataType[]>(originalAuthorData);
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
 
   const [typedWord, setTypedWord] = useState<any>(null);
-  const [tableData, setTableData] = useState<any>(null);
+  const [tableData, setTableData] =
+    useState<AuthorDataType[]>(originalAuthorData);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const isEditing = (record: AuthorDataType) => record.key === editingKey;
+  const isEditing = (record: AuthorDataType) => record.authorId === editingKey;
 
   const fetchData = async () => {
     const result = await axios(AUTHOR_URL);
     console.log(result.data.data);
-    // const data = result.data.map(({ username, email, phone, website, company, ...rest }) => rest);
-    const dataObj = result.data.data.map((object: AuthorDataType) => {
-      return {
-        ...object,
-        key: object?.authorId?.toString(),
-      };
-    });
+    const dataObj = result.data.data;
+
+    dataObj.sort((a: AuthorDataType, b: AuthorDataType) =>
+      a?.authorId > b?.authorId ? 1 : b?.authorId > a?.authorId ? -1 : 0
+    );
+
     setData(dataObj);
     setTableData(dataObj);
     setLoaded(true);
+    console.log("Authors fetched");
   };
 
   useEffect(() => {
     fetchData();
-    console.log("Authors fetched");
   }, []);
 
   useEffect(() => {
@@ -152,7 +157,7 @@ const App: React.FC = () => {
     }
   }, [typedWord, data]);
 
-  const edit = (record: Partial<AuthorDataType> & { key: React.Key }) => {
+  const edit = (record: Partial<AuthorDataType>) => {
     form.setFieldsValue({
       authorId: null,
       authorName: "",
@@ -160,49 +165,58 @@ const App: React.FC = () => {
       authorMobile: "",
       ...record,
     });
-    setEditingKey(record.key);
+    setEditingKey(record.authorId);
   };
 
-  const handleDelete = (
-    record: Partial<AuthorDataType> & { key: React.Key }
-  ) => {
-    const newData = data.filter((item) => item.key !== record.key);
+  const handleDelete = (record: Partial<AuthorDataType>) => {
+    const newData = data.filter((item) => item.authorId !== record.authorId);
     setData(newData);
     console.log(record);
-
     message.success({
       content: `${record.authorName} removed !`,
       icon: <DeleteFilled />,
     });
+    // no delete api yet
   };
 
-  const update = async (key: React.Key) => {
+  const update = async (record: Partial<AuthorDataType>) => {
     try {
       const row = (await form.validateFields()) as AuthorDataType;
+      // Patch logic for backend
+
+      await axios.post(AUTHOR_URL, {
+        authorId: row.authorId,
+        authorName: row.authorName,
+        authorEmail: row.authorEmail,
+        authorMobile: row.authorMobile,
+      });
+
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex(
+        (item) => record.authorId === item.authorId
+      );
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, {
           ...item,
           ...row,
         });
-        // Patch logic for backend
+
         setData(newData);
-        setEditingKey("");
+        message.info(`${row.authorName} updated !`);
+        setEditingKey(null);
       } else {
         newData.push(row);
         setData(newData);
-        setEditingKey("");
+        setEditingKey(null);
       }
-      message.info("Data updated !");
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(null);
   };
 
   const columns = [
@@ -218,7 +232,7 @@ const App: React.FC = () => {
       width: "20%",
       editable: true,
       render: (_: any, record: AuthorDataType) => (
-        <Link to={record.key}>{record.authorName}</Link>
+        <Link to={record.authorId?.toString()}>{record.authorName}</Link>
       ),
     },
     {
@@ -241,31 +255,21 @@ const App: React.FC = () => {
         const editable = isEditing(record);
         return editable ? (
           <Space size="middle">
-            <Button
-              type="primary"
-              onClick={() => update(record.key)}
-              style={{
-                backgroundColor: " #38375f",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Update
-            </Button>
+            <Tooltip title="Update">
+              <Button
+                shape="circle"
+                icon={<CheckOutlined />}
+                onClick={() => update(record)}
+              />
+            </Tooltip>
 
-            <Button
-              type="primary"
-              onClick={cancel}
-              style={{
-                backgroundColor: "#2c5a73",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Back
-            </Button>
+            <Tooltip title="Back">
+              <Button
+                shape="circle"
+                icon={<RollbackOutlined />}
+                onClick={cancel}
+              />
+            </Tooltip>
           </Space>
         ) : (
           <Space size="middle">
@@ -276,23 +280,22 @@ const App: React.FC = () => {
               okText="Delete"
               cancelText="Cancel"
             >
-              <Button
-                type="primary"
-                danger
-                style={{ width: "75px" }}
-                disabled={editingKey !== ""}
-              >
-                Delete
-              </Button>
+              <Tooltip title="Delete">
+                <Button
+                  shape="circle"
+                  icon={<DeleteOutlined />}
+                  disabled={editingKey !== null}
+                />
+              </Tooltip>
             </Popconfirm>
-            <Button
-              type="primary"
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-              style={{ width: "75px" }}
-            >
-              Edit
-            </Button>
+            <Tooltip title="Edit">
+              <Button
+                shape="circle"
+                icon={<EditOutlined />}
+                disabled={editingKey !== null}
+                onClick={() => edit(record)}
+              />
+            </Tooltip>
           </Space>
         );
       },
@@ -307,7 +310,7 @@ const App: React.FC = () => {
       ...col,
       onCell: (record: AuthorDataType) => ({
         record,
-        inputType: col.dataIndex === "id" ? "number" : "text",
+        inputType: col.dataIndex === "authorId" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),

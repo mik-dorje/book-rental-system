@@ -1,36 +1,16 @@
-import {
-  Button,
-  Form,
-  Input,
-  InputNumber,
-  message,
-  Popconfirm,
-  Row,
-  Space,
-  Table,
-  Typography,
-} from "antd";
+import { Form, Input, InputNumber, Row, Space, Table, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import axios from "../../../api/axios";
-import {
-  SearchOutlined,
-  PlusCircleFilled,
-  DeleteFilled,
-  FullscreenExitOutlined,
-  FullscreenOutlined,
-  RiseOutlined,
-  FallOutlined,
-} from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { SearchOutlined } from "@ant-design/icons";
 import TransactionForm from "./TransactionForm";
-import { BookDataType } from "../Book/Book";
-import { AuthorDataType } from "../Author/Author";
-import { MemberDataType } from "../Member/Member";
+import { BookDataType, originalBookData } from "../Book/Book";
+import { AuthorDataType, originalAuthorData } from "../Author/Author";
+import { MemberDataType, originalMemberData } from "../Member/Member";
 
 const TRANSACTION_URL = "bookrent/booktransaction";
 
 export interface TransactionDataType {
-  key: string;
+  // key: string;
   bookTransactionId: number;
   code: string;
   fromDate: string;
@@ -44,47 +24,50 @@ export interface TransactionDataType {
 
 const originData: TransactionDataType[] = [
   {
-    key: "",
+    // key: "",
     bookTransactionId: 0,
     code: "code",
     fromDate: new Date().toISOString(),
     toDate: new Date().toISOString(),
     rentType: "rentType",
     status: "status",
-    book: [
-      {
-        key: "",
-        bookId: 0,
-        bookName: "bookname",
-        noOfPages: 0,
-        isbn: "isbn",
-        rating: 0,
-        stockCount: 0,
-        publishedDate: new Date().toISOString(),
-        categoryId: 0,
-        authorId: [0],
-        bookImage: "bookImage",
-      },
-    ],
-    author: [
-      {
-        key: "",
-        authorId: null,
-        authorName: "",
-        authorEmail: "",
-        authorMobile: "",
-      },
-    ],
-    member: [
-      {
-        key: "",
-        memberId: null,
-        email: "",
-        name: "",
-        mobileNo: "",
-        address: "",
-      },
-    ],
+    book: originalBookData,
+    author: originalAuthorData,
+    member: originalMemberData,
+    // book: [
+    //   {
+    //     // key: "",
+    //     bookId: 0,
+    //     bookName: "bookname",
+    //     noOfPages: 0,
+    //     isbn: "isbn",
+    //     rating: 0,
+    //     stockCount: 0,
+    //     publishedDate: new Date().toISOString(),
+    //     categoryId: 0,
+    //     authorId: [0],
+    //     bookImage: "bookImage",
+    //   },
+    // ],
+    // author: [
+    //   {
+    //     // key: "",
+    //     authorId: 0,
+    //     authorName: "",
+    //     authorEmail: "",
+    //     authorMobile: "",
+    //   },
+    // ],
+    // member: [
+    //   {
+    //     // key: "",
+    //     memberId: 0,
+    //     email: "",
+    //     name: "",
+    //     mobileNo: "",
+    //     address: "",
+    //   },
+    // ],
   },
 ];
 
@@ -154,33 +137,28 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const Transaction: React.FC = () => {
   const [form] = Form.useForm();
   const [data, setData] = useState<TransactionDataType[]>(originData);
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
 
   const [typedWord, setTypedWord] = useState<any>(null);
   const [tableData, setTableData] = useState<TransactionDataType[]>(originData);
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const isEditing = (record: TransactionDataType) => record.key === editingKey;
+  const isEditing = (record: TransactionDataType) =>
+    record.bookTransactionId === editingKey;
 
   const fetchData = async () => {
     const result = await axios(TRANSACTION_URL);
     console.log(result.data.data);
-    // const data = result.data.map(({ username, email, phone, website, company, ...rest }) => rest);
-    const dataObj = result.data.data.map((object: TransactionDataType) => {
-      return {
-        ...object,
-        key: object?.bookTransactionId?.toString(),
-      };
-    });
+    const dataObj = result.data.data;
     setData(dataObj);
     setTableData(dataObj);
     setLoaded(true);
+    console.log("Book Transactions fetched");
   };
 
   useEffect(() => {
     fetchData();
-    console.log("Book Transactions fetched");
   }, []);
 
   useEffect(() => {
@@ -201,51 +179,8 @@ const Transaction: React.FC = () => {
     // }
   }, [typedWord, data]);
 
-  const edit = (record: Partial<TransactionDataType> & { key: React.Key }) => {
-    form.setFieldsValue({
-      ...record,
-    });
-    setEditingKey(record.key);
-  };
-
-  const handleDelete = (
-    record: Partial<TransactionDataType> & { key: React.Key }
-  ) => {
-    const newData = data.filter((item) => item.key !== record.key);
-    setData(newData);
-    message.success({
-      content: `${record.bookTransactionId} removed !`,
-      icon: <DeleteFilled />,
-    });
-  };
-
-  const update = async (key: React.Key) => {
-    try {
-      const row = (await form.validateFields()) as TransactionDataType;
-      const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
-      if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
-          ...item,
-          ...row,
-        });
-        // Patch logic for backend
-        setData(newData);
-        setEditingKey("");
-      } else {
-        newData.push(row);
-        setData(newData);
-        setEditingKey("");
-      }
-      message.info("Data updated !");
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
-    }
-  };
-
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(null);
   };
 
   const columns = [
@@ -269,17 +204,12 @@ const Transaction: React.FC = () => {
       editable: true,
     },
     {
-      title: "Rent Type",
+      title: "Type",
       dataIndex: "rentType",
       // width: "10%",
       editable: true,
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-      // width: "10%",
-      editable: true,
-    },
+
     {
       title: "Taken by",
       dataIndex: "member",
@@ -299,70 +229,6 @@ const Transaction: React.FC = () => {
       // width: "5%",
       editable: true,
     },
-    // {
-    //   title: "Action",
-    //   dataIndex: "operation",
-    //   width: "10%",
-    //   render: (_: any, record: TransactionDataType) => {
-    //     const editable = isEditing(record);
-    //     return editable ? (
-    //       <Space size="middle">
-    //         <Button
-    //           type="primary"
-    //           onClick={() => update(record.key)}
-    //           style={{
-    //             backgroundColor: " #38375f",
-    //             border: "none",
-    //             width: "75px",
-    //           }}
-    //           className="btns"
-    //         >
-    //           Update
-    //         </Button>
-
-    //         <Button
-    //           type="primary"
-    //           onClick={cancel}
-    //           style={{
-    //             backgroundColor: "#2c5a73",
-    //             border: "none",
-    //             width: "75px",
-    //           }}
-    //           className="btns"
-    //         >
-    //           Back
-    //         </Button>
-    //       </Space>
-    //     ) : (
-    //       <Space size="middle">
-    //         <Popconfirm
-    //           title="Are you sure to delete this record ?"
-    //           icon={<DeleteFilled style={{ color: "red" }} />}
-    //           onConfirm={() => handleDelete(record)}
-    //           okText="Delete"
-    //           cancelText="Cancel"
-    //         >
-    //           <Button
-    //             type="primary"
-    //             danger
-    //             style={{ width: "75px" }}
-    //             disabled={editingKey !== ""}
-    //           >
-    //             Delete
-    //           </Button>
-    //         </Popconfirm>
-    //         <Button
-    //           type="primary"
-    //           disabled={editingKey !== ""}
-    //           onClick={() => edit(record)}
-    //           style={{ width: "75px" }}
-    //         >
-    //           Edit
-    //         </Button>
-    //       </Space>
-    //     );
-    //   },
-    // },
   ];
 
   const mergedColumns = columns.map((col) => {
@@ -373,7 +239,7 @@ const Transaction: React.FC = () => {
       ...col,
       onCell: (record: TransactionDataType) => ({
         record,
-        inputType: col.dataIndex === "id" ? "number" : "text",
+        inputType: col.dataIndex === "bookTransactionId" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -394,19 +260,8 @@ const Transaction: React.FC = () => {
 
         <Form form={form} component={false} initialValues={{ remember: false }}>
           <Row justify="space-between">
-            <Form.Item>
-              <Button
-                type="primary"
-                icon={<PlusCircleFilled style={{ fontSize: "18px" }} />}
-                onClick={() => setModalOpen(true)}
-              >
-                <Typography.Text strong style={{ zIndex: 2, color: "white" }}>
-                  Transaction
-                </Typography.Text>
-              </Button>
-            </Form.Item>
             <Typography.Title level={5} style={{ zIndex: 2, color: "white" }}>
-              TRANSACTIONS
+              TRANSACTION
             </Typography.Title>
             <Space size="small" direction="horizontal">
               <Form.Item name="search">

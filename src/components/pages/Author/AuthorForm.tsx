@@ -22,7 +22,7 @@ const AuthorForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
       const response = await axios.post(
         AUTHOR_URL,
         JSON.stringify({
-          authorId: data.length + 1,
+          // authorId: data.length + 1,
           authorName: values.authorName,
           authorEmail: values.authorEmail,
           authorMobile: values.authorMobile,
@@ -36,7 +36,7 @@ const AuthorForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
       setData([
         ...data,
         {
-          key: values.authorId ? values.authorId : data.length + 1,
+          // key: values.authorId ? values.authorId : data.length + 1,
           authorId: values.authorId ? values.authorId : data.length + 1,
           authorName: values.authorName,
           authorEmail: values.authorEmail,

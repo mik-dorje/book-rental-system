@@ -19,7 +19,7 @@ import moment from "moment";
 
 const BOOK_URL = "/bookrental/book";
 const MEMBER_URL = "bookrent/member";
-const RENT_URL = "bookrent/booktransaction/rent-book";
+const RETURN_URL = "bookrent/booktransaction/return-book";
 
 const RentBook = () => {
   const [form] = Form.useForm();
@@ -31,57 +31,57 @@ const RentBook = () => {
   const fetchBooks = async () => {
     const result = await axios(BOOK_URL);
     setBooks(result.data.data);
-    console.log("book fetched");
   };
   const fetchMembers = async () => {
     const result = await axios(MEMBER_URL);
     setMembers(result.data.data);
-    console.log("members fetched");
   };
 
   useEffect(() => {
     fetchBooks();
     fetchMembers();
-
-    // console.log({books, members})
   }, []);
 
   // Form Modal Functions
   const onFinish = async (values: any) => {
+    console.log({ values });
+
     const newRentData = {
       bookId: values.bookId,
       toDate: values.toDate._d.toISOString().slice(0, 10),
-      rentType: "RENT",
+      rentType: "RETURN",
       memberId: values.memberId,
     };
     console.log(newRentData);
 
     try {
-      const response = await axios.post(RENT_URL, JSON.stringify(newRentData), {
-        headers: { "Content-Type": "application/json" },
-        // withCredentials: true,
-      });
+      const response = await axios.post(
+        RETURN_URL,
+        JSON.stringify(newRentData),
+        {
+          headers: { "Content-Type": "application/json" },
+          // withCredentials: true,
+        }
+      );
+      console.log(JSON.stringify(response?.data));
 
-      // console.log(JSON.stringify(response?.data));
       // const oneBook = books.filter((book) => book.bookId === values.bookId)[0]
       //   .bookName;
       // const oneMember = members.filter(
       //   (member) => member.memberId === values.memberId
       // )[0].name;
-      // message.success(`"${oneBook}" rented to ${oneMember}`);
+      // message.success(`"${oneBook}" returned by ${oneMember}`);
 
       if (response.status === 200) {
         message.success(response.data.message);
       }
 
       form.resetFields();
+      //   setModalOpen(false);
+      // message.success(`${values?.bookName} added !`);
     } catch (err) {
       console.log(err);
     }
-  };
-
-  const handleModalCancel = () => {
-    // setModalOpen(false);
   };
 
   const memberOptions = members.map((member) => {
@@ -91,8 +91,6 @@ const RentBook = () => {
     };
   });
 
-  // For multiple books select
-
   const bookOptions = books.map((book) => {
     if (book.bookName === "") {
       return {
@@ -100,10 +98,9 @@ const RentBook = () => {
         value: "",
       };
     }
-
     return {
-      label: book?.bookName,
-      value: book?.bookId,
+      label: book.bookName,
+      value: book.bookId,
     };
   });
 
@@ -111,10 +108,13 @@ const RentBook = () => {
     return current && current < moment().add(-1, "days");
   }
 
+  const handleModalCancel = () => {};
+
   return (
     <div
       style={{
         boxShadow: "0 0 8px 2px #e5e1e0",
+        // zIndex: "50",
       }}
     >
       <Row>
@@ -134,7 +134,7 @@ const RentBook = () => {
       <Form
         form={form}
         name="basic"
-        labelCol={{ span: 7 }}
+        labelCol={{ span: 8 }}
         wrapperCol={{ span: 14 }}
         initialValues={{ remember: false }}
         onFinish={onFinish}
@@ -142,7 +142,7 @@ const RentBook = () => {
       >
         <Divider>
           <Typography.Title level={4} style={{ color: "white" }}>
-            RENT BOOK
+            RETURN BOOK
           </Typography.Title>
         </Divider>
 
@@ -191,6 +191,23 @@ const RentBook = () => {
           />
         </Form.Item>
 
+        {/* <Form.Item
+          label="Request"
+          name="fromDate"
+          rules={[
+            {
+              required: false,
+              message: "Please input request date!",
+            },
+          ]}
+        >
+          <DatePicker
+            placement="topLeft"
+            format="YYYY-MM-DD"
+            disabledDate={disabledDate}
+            style={{ width: "100%", marginLeft: "16px" }}
+          />
+        </Form.Item> */}
         <Form.Item
           label="Return Date"
           name="toDate"
@@ -208,7 +225,6 @@ const RentBook = () => {
             style={{ width: "100%", marginLeft: "16px" }}
           />
         </Form.Item>
-
         <Row justify="center">
           <Space size="middle">
             <Form.Item>
@@ -217,7 +233,7 @@ const RentBook = () => {
                 htmlType="submit"
                 // style={{ width: "75px" }}
               >
-                Rent
+                Return
               </Button>
             </Form.Item>
             <Form.Item>

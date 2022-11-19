@@ -1,14 +1,22 @@
 import Icon, {
   ApiFilled,
   BookFilled,
+  DatabaseFilled,
+  DesktopOutlined,
   FallOutlined,
   FolderOpenFilled,
   IdcardFilled,
+  InteractionFilled,
+  LaptopOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  NotificationOutlined,
+  PieChartOutlined,
   RiseOutlined,
   SkinFilled,
+  SolutionOutlined,
+  TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Avatar, Layout, Menu, Typography } from "antd";
@@ -21,7 +29,7 @@ const { Header, Sider, Content } = Layout;
 const menuItems = [
   {
     key: "1",
-    icon: FolderOpenFilled,
+    icon: DatabaseFilled,
     label: "Category",
     path: "/bookrental/category",
   },
@@ -39,24 +47,27 @@ const menuItems = [
   },
   {
     key: "4",
-    icon: SkinFilled,
+    icon: SolutionOutlined,
     label: "Member",
     path: "/bookrent/member",
   },
+];
+
+const subItems = [
   {
-    key: "5",
-    icon: ApiFilled,
-    label: "Book Transaction",
+    key: "6",
+    icon: InteractionFilled,
+    label: "History",
     path: "/bookrent/booktransaction",
   },
   {
-    key: "6",
+    key: "7",
     icon: RiseOutlined,
     label: "Rent Book",
     path: "/bookrent/booktransaction/rent-book",
   },
   {
-    key: "7",
+    key: "8",
     icon: FallOutlined,
     label: "Return Book",
     path: "/bookrent/booktransaction/return-book",
@@ -85,11 +96,6 @@ const App: React.FC = () => {
         <div className="logo-box">
           <img src={logo} alt="Logo" width="55px" />
         </div>
-        {/* <div className="logo-box">
-          <CodeSandboxCircleFilled
-            style={{ color: "white", fontSize: "45px" }}
-          />
-        </div> */}
 
         <div
           style={{
@@ -103,10 +109,25 @@ const App: React.FC = () => {
             theme="dark"
             mode="inline"
             defaultSelectedKeys={["1"]}
+            defaultOpenKeys={["5"]}
             style={{ marginTop: "8px" }}
           >
-            <>
-              {menuItems.map((item) => (
+            {menuItems.map((item) => (
+              <Menu.Item key={item.key}>
+                <Icon
+                  component={item.icon as React.ForwardRefExoticComponent<any>}
+                />
+                <span>{item.label}</span>
+                <Link to={item.path} />
+              </Menu.Item>
+            ))}
+
+            <Menu.SubMenu
+              key={5}
+              title="Book Transaction"
+              icon={<FolderOpenFilled />}
+            >
+              {subItems.map((item) => (
                 <Menu.Item key={item.key}>
                   <Icon
                     component={
@@ -117,8 +138,9 @@ const App: React.FC = () => {
                   <Link to={item.path} />
                 </Menu.Item>
               ))}
-            </>
+            </Menu.SubMenu>
           </Menu>
+
           <Menu theme="dark" mode="inline">
             <Menu.Item key={null}>
               <LogoutOutlined style={{ fontSize: "22px" }} />
@@ -138,14 +160,6 @@ const App: React.FC = () => {
               <MenuFoldOutlined onClick={() => setCollapsed(!collapsed)} />
             )}
           </div>
-
-          {/* {React.createElement(
-            collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
-            {
-              className: "trigger",
-              onClick: () => setCollapsed(!collapsed),
-            }
-          )} */}
 
           <Typography.Title level={3} style={{ color: "white" }}>
             Book Rental System

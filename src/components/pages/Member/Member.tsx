@@ -8,6 +8,7 @@ import {
   Row,
   Space,
   Table,
+  Tooltip,
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
@@ -16,6 +17,10 @@ import {
   SearchOutlined,
   PlusCircleFilled,
   DeleteFilled,
+  CheckOutlined,
+  RollbackOutlined,
+  DeleteOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import MemberForm from "./MemberForm";
@@ -23,8 +28,8 @@ import MemberForm from "./MemberForm";
 const MEMBER_URL = "bookrent/member";
 
 export interface MemberDataType {
-  key: string;
-  memberId: number | null;
+  // key: string;
+  memberId: number;
   email: string;
   name: string;
   mobileNo: string;
@@ -33,8 +38,8 @@ export interface MemberDataType {
 
 export const originalMemberData: MemberDataType[] = [
   {
-    key: "",
-    memberId: null,
+    // key: "",
+    memberId: 0,
     email: "",
     name: "",
     mobileNo: "",
@@ -63,8 +68,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
   ...restProps
 }) => {
   const inputNode =
-    inputType === "number" ? (
+    dataIndex === "memberId" ? (
       <InputNumber
+        disabled
         style={{
           width: "90%",
           backgroundColor: "#fff",
@@ -108,33 +114,31 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const App: React.FC = () => {
   const [form] = Form.useForm();
   const [data, setData] = useState<MemberDataType[]>(originalMemberData);
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
 
   const [typedWord, setTypedWord] = useState<any>(null);
   const [tableData, setTableData] = useState<any>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const isEditing = (record: MemberDataType) => record.key === editingKey;
+  const isEditing = (record: MemberDataType) => record.memberId === editingKey;
 
   const fetchData = async () => {
     const result = await axios(MEMBER_URL);
     console.log(result.data.data);
-    // const data = result.data.map(({ username, email, phone, website, company, ...rest }) => rest);
-    const dataObj = result.data.data.map((object: MemberDataType) => {
-      return {
-        ...object,
-        key: object?.memberId?.toString(),
-      };
-    });
+    const dataObj = result.data.data;
+    dataObj.sort((a: MemberDataType, b: MemberDataType) =>
+      a.memberId > b.memberId ? 1 : b.memberId > a.memberId ? -1 : 0
+    );
+
     setData(dataObj);
     setTableData(dataObj);
     setLoaded(true);
+    console.log("Members fetched");
   };
 
   useEffect(() => {
     fetchData();
-    console.log("Members fetched");
   }, []);
 
   useEffect(() => {
@@ -155,21 +159,19 @@ const App: React.FC = () => {
     }
   }, [typedWord, data]);
 
-  const edit = (record: Partial<MemberDataType> & { key: React.Key }) => {
+  const edit = (record: Partial<MemberDataType>) => {
     form.setFieldsValue({
-      authorId: null,
-      authorName: "",
-      authorEmail: "",
-      authorMobile: "",
+      memberId: 0,
+      name: "",
+      email: "",
+      mobileNo: "",
       ...record,
     });
-    setEditingKey(record.key);
+    setEditingKey(record.memberId);
   };
 
-  const handleDelete = (
-    record: Partial<MemberDataType> & { key: React.Key }
-  ) => {
-    const newData = data.filter((item) => item.key !== record.key);
+  const handleDelete = (record: Partial<MemberDataType>) => {
+    const newData = data.filter((item) => item.memberId !== record.memberId);
     setData(newData);
     console.log(record);
 
@@ -179,33 +181,45 @@ const App: React.FC = () => {
     });
   };
 
-  const update = async (key: React.Key) => {
+  const update = async (record: Partial<MemberDataType>) => {
     try {
       const row = (await form.validateFields()) as MemberDataType;
+      // Patch logic for backend
+      await axios.post(MEMBER_URL, {
+        memberId: row.memberId,
+        email: row.email,
+        name: row.name,
+        mobileNo: row.mobileNo,
+        address: row.address,
+      });
+
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex(
+        (item) => record.memberId === item.memberId
+      );
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, {
           ...item,
           ...row,
         });
-        // Patch logic for backend
+
         setData(newData);
-        setEditingKey("");
+
+        setEditingKey(null);
       } else {
         newData.push(row);
         setData(newData);
-        setEditingKey("");
+        setEditingKey(null);
       }
-      message.info("Data updated !");
+      message.info(`${row.name} updated !`);
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(null);
   };
 
   const columns = [
@@ -222,7 +236,7 @@ const App: React.FC = () => {
       width: "15%",
       editable: true,
       render: (_: any, record: MemberDataType) => (
-        <Link to={record.key}>{record.name}</Link>
+        <Link to={record.memberId.toString()}>{record.name}</Link>
       ),
     },
     {
@@ -251,31 +265,21 @@ const App: React.FC = () => {
         const editable = isEditing(record);
         return editable ? (
           <Space size="middle">
-            <Button
-              type="primary"
-              onClick={() => update(record.key)}
-              style={{
-                backgroundColor: " #38375f",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Update
-            </Button>
+            <Tooltip title="Update">
+              <Button
+                shape="circle"
+                icon={<CheckOutlined />}
+                onClick={() => update(record)}
+              />
+            </Tooltip>
 
-            <Button
-              type="primary"
-              onClick={cancel}
-              style={{
-                backgroundColor: "#2c5a73",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Back
-            </Button>
+            <Tooltip title="Back">
+              <Button
+                shape="circle"
+                icon={<RollbackOutlined />}
+                onClick={cancel}
+              />
+            </Tooltip>
           </Space>
         ) : (
           <Space size="middle">
@@ -286,23 +290,22 @@ const App: React.FC = () => {
               okText="Delete"
               cancelText="Cancel"
             >
-              <Button
-                type="primary"
-                danger
-                style={{ width: "75px" }}
-                disabled={editingKey !== ""}
-              >
-                Delete
-              </Button>
+              <Tooltip title="Delete">
+                <Button
+                  shape="circle"
+                  icon={<DeleteOutlined />}
+                  disabled={editingKey !== null}
+                />
+              </Tooltip>
             </Popconfirm>
-            <Button
-              type="primary"
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-              style={{ width: "75px" }}
-            >
-              Edit
-            </Button>
+            <Tooltip title="Edit">
+              <Button
+                shape="circle"
+                icon={<EditOutlined />}
+                disabled={editingKey !== null}
+                onClick={() => edit(record)}
+              />
+            </Tooltip>
           </Space>
         );
       },
@@ -317,7 +320,7 @@ const App: React.FC = () => {
       ...col,
       onCell: (record: MemberDataType) => ({
         record,
-        inputType: col.dataIndex === "id" ? "number" : "text",
+        inputType: col.dataIndex === "memberId" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),

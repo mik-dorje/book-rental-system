@@ -22,7 +22,7 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
       const response = await axios.post(
         MEMBER_URL,
         JSON.stringify({
-          memberId: data.length + 1,
+          // memberId: data.length + 1,
           name: values.name,
           email: values.email,
           mobileNo: values.mobileNo,
@@ -37,7 +37,7 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
       setData([
         ...data,
         {
-          key: values.memberId ? values.memberId : data.length + 1,
+          // key: values.memberId ? values.memberId : data.length + 1,
           memberId: values.memberId ? values.memberId : data.length + 1,
           name: values.name,
           email: values.email,
@@ -48,7 +48,12 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
 
       formModal.resetFields();
       setModalOpen(false);
-      message.success(`${values.name} added !`);
+
+      if (response.status === 200) {
+        message.success(response.data.message);
+      }
+
+      // message.success(`${values.name} added !`);
     } catch (err) {
       console.log(err);
     }
@@ -80,15 +85,6 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
         // onFinishFailed={onFinishFailed}
         // autoComplete="off"
       >
-        {/* <Form.Item
-        label="ID"
-        name="memberId"
-        rules={[
-          { required: false, message: "Please input member ID!" },
-        ]}
-      >
-        <Input type="number" />
-      </Form.Item> */}
         <Form.Item
           label="Name"
           name="name"

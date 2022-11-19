@@ -27,7 +27,7 @@ const CategoryForm = ({
       const response = await axios.post(
         CATEGORY_URL,
         JSON.stringify({
-          categoryId: data.length + 1,
+          // categoryId: data.length + 1,
           categoryName: values.categoryName,
           categoryDescription: values.categoryDescription,
         }),
@@ -40,7 +40,7 @@ const CategoryForm = ({
       setData([
         ...data,
         {
-          key: values.categoryId ? values.categoryId : data.length + 1,
+          // key: values.categoryId ? values.categoryId : data.length + 1,
           categoryId: values.categoryId ? values.categoryId : data.length + 1,
           categoryName: values.categoryName,
           categoryDescription: values.categoryDescription,
@@ -49,7 +49,9 @@ const CategoryForm = ({
 
       formModal.resetFields();
       setModalOpen(false);
-      message.success(`${values.categoryName} added !`);
+      if (response.status === 200) {
+        message.success(response.data.message);
+      }
     } catch (err) {
       console.log(err);
     }

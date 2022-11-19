@@ -8,6 +8,7 @@ import {
   Row,
   Space,
   Table,
+  Tooltip,
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
@@ -16,6 +17,10 @@ import {
   SearchOutlined,
   PlusCircleFilled,
   DeleteFilled,
+  EditOutlined,
+  DeleteOutlined,
+  CheckOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import CategoryForm from "./CategoryForm";
@@ -23,16 +28,16 @@ import CategoryForm from "./CategoryForm";
 const CATEGORY_URL = "bookrental/category";
 
 export interface CategoryDataType {
-  key: string;
-  categoryId: number | null;
+  // key: string;
+  categoryId: number;
   categoryName: string;
-  categoryDescription: any;
+  categoryDescription: string;
 }
 
 export const originalCategoryData: CategoryDataType[] = [
   {
-    key: "",
-    categoryId: null,
+    // key: "",
+    categoryId: 0,
     categoryName: "",
     categoryDescription: "",
   },
@@ -59,8 +64,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
   ...restProps
 }) => {
   const inputNode =
-    inputType === "number" ? (
+    dataIndex === "categoryId" ? (
       <InputNumber
+        disabled
         style={{
           width: "90%",
           backgroundColor: "#fff",
@@ -104,25 +110,26 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const App: React.FC = () => {
   const [form] = Form.useForm();
   const [data, setData] = useState<CategoryDataType[]>(originalCategoryData);
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
 
   const [typedWord, setTypedWord] = useState<any>(null);
-  const [tableData, setTableData] = useState<any>(null);
+  const [tableData, setTableData] =
+    useState<CategoryDataType[]>(originalCategoryData);
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const isEditing = (record: CategoryDataType) => record.key === editingKey;
+  const isEditing = (record: CategoryDataType) =>
+    record.categoryId === editingKey;
 
   const fetchData = async () => {
     const result = await axios(CATEGORY_URL);
     console.log(result.data.data);
-    // const data = result.data.map(({ username, email, phone, website, company, ...rest }) => rest);
-    const dataObj = result.data.data.map((object: CategoryDataType) => {
-      return {
-        ...object,
-        key: object?.categoryId?.toString(),
-      };
-    });
+    const dataObj = result.data.data;
+
+    dataObj.sort((a: CategoryDataType, b: CategoryDataType) =>
+      a.categoryId > b.categoryId ? 1 : b.categoryId > a.categoryId ? -1 : 0
+    );
+
     setData(dataObj);
     setTableData(dataObj);
     setLoaded(true);
@@ -151,20 +158,21 @@ const App: React.FC = () => {
     }
   }, [typedWord, data]);
 
-  const edit = (record: Partial<CategoryDataType> & { key: React.Key }) => {
+  const edit = (record: Partial<CategoryDataType>) => {
+    console.log(record);
     form.setFieldsValue({
-      categoryId: "",
+      categoryId: null,
       CategoryName: "",
       CategoryDescription: "",
       ...record,
     });
-    setEditingKey(record.key);
+    setEditingKey(record?.categoryId);
   };
 
-  const handleDelete = (
-    record: Partial<CategoryDataType> & { key: React.Key }
-  ) => {
-    const newData = data.filter((item) => item.key !== record.key);
+  const handleDelete = (record: Partial<CategoryDataType>) => {
+    const newData = data.filter(
+      (item) => item.categoryId !== record.categoryId
+    );
     setData(newData);
     console.log(record);
 
@@ -174,11 +182,19 @@ const App: React.FC = () => {
     });
   };
 
-  const update = async (key: React.Key) => {
+  const update = async (record: Partial<CategoryDataType>) => {
     try {
       const row = (await form.validateFields()) as CategoryDataType;
+      await axios.post(CATEGORY_URL, {
+        categoryId: row.categoryId,
+        categoryName: row.categoryName,
+        categoryDescription: row.categoryDescription,
+      });
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+
+      const index = newData.findIndex(
+        (item) => record.categoryId === item.categoryId
+      );
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, {
@@ -186,21 +202,22 @@ const App: React.FC = () => {
           ...row,
         });
         // Patch logic for backend
+
         setData(newData);
-        setEditingKey("");
+        setEditingKey(null);
       } else {
         newData.push(row);
         setData(newData);
-        setEditingKey("");
+        setEditingKey(null);
       }
-      message.info("Data updated !");
+      message.info(`${row.categoryName} updated !`);
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(null);
   };
 
   const columns = [
@@ -216,7 +233,7 @@ const App: React.FC = () => {
       width: "20%",
       editable: true,
       render: (_: any, record: CategoryDataType) => (
-        <Link to={record.key}>{record.categoryName}</Link>
+        <Link to={record?.categoryId?.toString()}>{record.categoryName}</Link>
       ),
     },
     {
@@ -233,31 +250,21 @@ const App: React.FC = () => {
         const editable = isEditing(record);
         return editable ? (
           <Space size="middle">
-            <Button
-              type="primary"
-              onClick={() => update(record.key)}
-              style={{
-                backgroundColor: " #38375f",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Update
-            </Button>
+            <Tooltip title="Update">
+              <Button
+                shape="circle"
+                icon={<CheckOutlined />}
+                onClick={() => update(record)}
+              />
+            </Tooltip>
 
-            <Button
-              type="primary"
-              onClick={cancel}
-              style={{
-                backgroundColor: "#2c5a73",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Back
-            </Button>
+            <Tooltip title="Back">
+              <Button
+                shape="circle"
+                icon={<RollbackOutlined />}
+                onClick={cancel}
+              />
+            </Tooltip>
           </Space>
         ) : (
           <Space size="middle">
@@ -268,23 +275,22 @@ const App: React.FC = () => {
               okText="Delete"
               cancelText="Cancel"
             >
-              <Button
-                type="primary"
-                danger
-                style={{ width: "75px" }}
-                disabled={editingKey !== ""}
-              >
-                Delete
-              </Button>
+              <Tooltip title="Delete">
+                <Button
+                  shape="circle"
+                  icon={<DeleteOutlined />}
+                  disabled={editingKey !== null}
+                />
+              </Tooltip>
             </Popconfirm>
-            <Button
-              type="primary"
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-              style={{ width: "75px" }}
-            >
-              Edit
-            </Button>
+            <Tooltip title="Edit">
+              <Button
+                shape="circle"
+                icon={<EditOutlined />}
+                disabled={editingKey !== null}
+                onClick={() => edit(record)}
+              />
+            </Tooltip>
           </Space>
         );
       },
@@ -299,7 +305,7 @@ const App: React.FC = () => {
       ...col,
       onCell: (record: CategoryDataType) => ({
         record,
-        inputType: col.dataIndex === "id" ? "number" : "text",
+        inputType: col.dataIndex === "categoryId" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),

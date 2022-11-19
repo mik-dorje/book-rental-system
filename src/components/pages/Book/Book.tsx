@@ -8,6 +8,7 @@ import {
   Row,
   Space,
   Table,
+  Tooltip,
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
@@ -16,6 +17,10 @@ import {
   SearchOutlined,
   PlusCircleFilled,
   DeleteFilled,
+  CheckOutlined,
+  RollbackOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import BookForm from "./BookForm";
 import { Link } from "react-router-dom";
@@ -23,7 +28,7 @@ import { Link } from "react-router-dom";
 const BOOK_URL = "/bookrental/book";
 
 export interface BookDataType {
-  key: string;
+  // key: string;
   bookId: number;
   bookName: string;
   noOfPages: number;
@@ -31,23 +36,23 @@ export interface BookDataType {
   rating: number;
   stockCount: number;
   publishedDate: string;
-  categoryId: number;
-  authorId: number[];
+  categoryId: number | null;
+  authorId: number[] | null[];
   bookImage: string;
 }
 
 export const originalBookData: BookDataType[] = [
   {
-    key: "",
+    // key: "",
     bookId: 0,
-    bookName: "bookname",
+    bookName: "",
     noOfPages: 0,
-    isbn: "isbn",
+    isbn: "",
     rating: 0,
     stockCount: 0,
     publishedDate: new Date().toISOString(),
-    categoryId: 0,
-    authorId: [0],
+    categoryId: null,
+    authorId: [null],
     bookImage: "bookImage",
   },
 ];
@@ -73,8 +78,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
   ...restProps
 }) => {
   const inputNode =
-    inputType === "number" ? (
+    dataIndex === "bookId" ? (
       <InputNumber
+        disabled
         style={{
           width: "90%",
           backgroundColor: "#fff",
@@ -118,33 +124,32 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const App: React.FC = () => {
   const [form] = Form.useForm();
   const [data, setData] = useState<BookDataType[]>(originalBookData);
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
 
   const [typedWord, setTypedWord] = useState<any>(null);
   const [tableData, setTableData] = useState<BookDataType[]>(originalBookData);
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const isEditing = (record: BookDataType) => record.key === editingKey;
+  const isEditing = (record: BookDataType) => record.bookId === editingKey;
 
   const fetchData = async () => {
     const result = await axios(BOOK_URL);
     console.log(result.data.data);
-    // const data = result.data.map(({ username, email, phone, website, company, ...rest }) => rest);
-    const dataObj = result.data.data.map((object: BookDataType) => {
-      return {
-        ...object,
-        key: object?.bookId?.toString(),
-      };
-    });
+    const dataObj = result.data.data;
+
+    dataObj.sort((a: BookDataType, b: BookDataType) =>
+      a.bookId > b.bookId ? 1 : b.bookId > a.bookId ? -1 : 0
+    );
+
     setData(dataObj);
     setTableData(dataObj);
     setLoaded(true);
+    console.log("Books fetched");
   };
 
   useEffect(() => {
     fetchData();
-    console.log("Books fetched");
   }, []);
 
   useEffect(() => {
@@ -165,18 +170,18 @@ const App: React.FC = () => {
     // }
   }, [typedWord, data]);
 
-  const edit = (record: Partial<BookDataType> & { key: React.Key }) => {
+  const edit = (record: Partial<BookDataType>) => {
     form.setFieldsValue({
       // categoryId: "",
       // CategoryName: "",
       // CategoryDescription: "",
       ...record,
     });
-    setEditingKey(record.key);
+    setEditingKey(record.bookId);
   };
 
-  const handleDelete = (record: Partial<BookDataType> & { key: React.Key }) => {
-    const newData = data.filter((item) => item.key !== record.key);
+  const handleDelete = (record: Partial<BookDataType>) => {
+    const newData = data.filter((item) => item.bookId !== record.bookId);
     setData(newData);
     message.success({
       content: `${record.bookName} removed !`,
@@ -184,11 +189,11 @@ const App: React.FC = () => {
     });
   };
 
-  const update = async (key: React.Key) => {
+  const update = async (record: Partial<BookDataType>) => {
     try {
       const row = (await form.validateFields()) as BookDataType;
       const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
+      const index = newData.findIndex((item) => record.bookId === item.bookId);
       if (index > -1) {
         const item = newData[index];
         newData.splice(index, 1, {
@@ -197,11 +202,11 @@ const App: React.FC = () => {
         });
         // Patch logic for backend
         setData(newData);
-        setEditingKey("");
+        setEditingKey(null);
       } else {
         newData.push(row);
         setData(newData);
-        setEditingKey("");
+        setEditingKey(null);
       }
       message.info("Data updated !");
     } catch (errInfo) {
@@ -210,7 +215,7 @@ const App: React.FC = () => {
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(null);
   };
 
   const columns = [
@@ -226,7 +231,7 @@ const App: React.FC = () => {
       // width: "10%",
       editable: true,
       render: (_: any, record: BookDataType) => (
-        <Link to={record.key}>{record.bookName}</Link>
+        <Link to={record?.bookId?.toString()}>{record.bookName}</Link>
       ),
     },
     {
@@ -250,31 +255,21 @@ const App: React.FC = () => {
         const editable = isEditing(record);
         return editable ? (
           <Space size="middle">
-            <Button
-              type="primary"
-              onClick={() => update(record.key)}
-              style={{
-                backgroundColor: " #38375f",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Update
-            </Button>
+            <Tooltip title="Update">
+              <Button
+                shape="circle"
+                icon={<CheckOutlined />}
+                onClick={() => update(record)}
+              />
+            </Tooltip>
 
-            <Button
-              type="primary"
-              onClick={cancel}
-              style={{
-                backgroundColor: "#2c5a73",
-                border: "none",
-                width: "75px",
-              }}
-              className="btns"
-            >
-              Back
-            </Button>
+            <Tooltip title="Back">
+              <Button
+                shape="circle"
+                icon={<RollbackOutlined />}
+                onClick={cancel}
+              />
+            </Tooltip>
           </Space>
         ) : (
           <Space size="middle">
@@ -285,23 +280,22 @@ const App: React.FC = () => {
               okText="Delete"
               cancelText="Cancel"
             >
-              <Button
-                type="primary"
-                danger
-                style={{ width: "75px" }}
-                disabled={editingKey !== ""}
-              >
-                Delete
-              </Button>
+              <Tooltip title="Delete">
+                <Button
+                  shape="circle"
+                  icon={<DeleteOutlined />}
+                  disabled={editingKey !== null}
+                />
+              </Tooltip>
             </Popconfirm>
-            <Button
-              type="primary"
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-              style={{ width: "75px" }}
-            >
-              Edit
-            </Button>
+            <Tooltip title="Edit">
+              <Button
+                shape="circle"
+                icon={<EditOutlined />}
+                disabled={editingKey !== null}
+                onClick={() => edit(record)}
+              />
+            </Tooltip>
           </Space>
         );
       },
@@ -316,7 +310,7 @@ const App: React.FC = () => {
       ...col,
       onCell: (record: BookDataType) => ({
         record,
-        inputType: col.dataIndex === "id" ? "number" : "text",
+        inputType: col.dataIndex === "bookId" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),

@@ -15,7 +15,7 @@ import SingleAuthor from "./components/pages/Author/SingleAuthor";
 import SingleMember from "./components/pages/Member/SingleMember";
 import SingleBook from "./components/pages/Book/SingleBook";
 import RentBook from "./components/pages/Tran saction/RentBook";
-import RetrunBook from "./components/pages/Tran saction/RetrunBook";
+import RetrunBook from "./components/pages/Tran saction/ReturnBook";
 
 const App: React.FC = () => {
   return (
