@@ -46,6 +46,7 @@ const AuthorForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
 
       formModal.resetFields();
       setModalOpen(false);
+      window.location.reload();
       message.success(`${values.authorName} added !`);
     } catch (err) {
       console.log(err);

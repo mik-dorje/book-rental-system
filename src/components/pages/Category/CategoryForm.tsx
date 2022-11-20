@@ -52,6 +52,7 @@ const CategoryForm = ({
       if (response.status === 200) {
         message.success(response.data.message);
       }
+      window.location.reload();
     } catch (err) {
       console.log(err);
     }

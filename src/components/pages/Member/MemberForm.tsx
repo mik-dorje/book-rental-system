@@ -53,6 +53,7 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
         message.success(response.data.message);
       }
 
+      window.location.reload();
       // message.success(`${values.name} added !`);
     } catch (err) {
       console.log(err);

@@ -122,6 +122,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
       if (response.status === 200) {
         message.success(response.data.message);
       }
+      window.location.reload();
     } catch (err) {
       console.log(err);
     }
@@ -150,14 +151,6 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
         // onFinishFailed={onFinishFailed}
         // autoComplete="off"
       >
-        {/* <Form.Item
-          label="ID"
-          name="bookId"
-          rules={[{ required: false, message: "Please input category ID!" }]}
-        >
-          <Input type="number" />
-        </Form.Item> */}
-
         <Space direction="horizontal">
           <div>
             <Form.Item

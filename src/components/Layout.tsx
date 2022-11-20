@@ -1,22 +1,15 @@
 import Icon, {
-  ApiFilled,
   BookFilled,
   DatabaseFilled,
-  DesktopOutlined,
   FallOutlined,
   FolderOpenFilled,
   IdcardFilled,
   InteractionFilled,
-  LaptopOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  NotificationOutlined,
-  PieChartOutlined,
   RiseOutlined,
-  SkinFilled,
   SolutionOutlined,
-  TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Avatar, Layout, Menu, Typography } from "antd";
@@ -178,7 +171,6 @@ const App: React.FC = () => {
             padding: "10px",
             minHeight: `calc(100vh - 80px)`,
             borderRadius: "6px",
-            // backgroundColor: "#eaeaea",
             border: "1px solid gray",
             textAlign: "center",
           }}

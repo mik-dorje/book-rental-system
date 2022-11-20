@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import CategoryForm from "./CategoryForm";
+import authHeader from "../../../services/authHeader";
 
 const CATEGORY_URL = "bookrental/category";
 
@@ -122,7 +123,9 @@ const App: React.FC = () => {
     record.categoryId === editingKey;
 
   const fetchData = async () => {
-    const result = await axios(CATEGORY_URL);
+    const result = await axios(CATEGORY_URL, {
+      headers: authHeader(),
+    });
     console.log(result.data.data);
     const dataObj = result.data.data;
 
@@ -133,11 +136,11 @@ const App: React.FC = () => {
     setData(dataObj);
     setTableData(dataObj);
     setLoaded(true);
+    console.log("Categories fetched");
   };
 
   useEffect(() => {
     fetchData();
-    console.log("Categories fetched");
   }, []);
 
   useEffect(() => {
