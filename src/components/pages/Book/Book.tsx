@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import BookForm from "./BookForm";
 import { Link } from "react-router-dom";
+import authHeader from "../../../hooks/authHeader";
 
 const BOOK_URL = "/bookrental/book";
 
@@ -134,7 +135,9 @@ const App: React.FC = () => {
   const isEditing = (record: BookDataType) => record.bookId === editingKey;
 
   const fetchData = async () => {
-    const result = await axios(BOOK_URL);
+    const result = await axios(BOOK_URL, {
+      headers: authHeader(),
+    });
     console.log(result.data.data);
     const dataObj = result.data.data;
 

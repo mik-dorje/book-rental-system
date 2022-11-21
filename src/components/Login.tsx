@@ -10,7 +10,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import authService from "../services/authService";
+import useAuth from "../hooks/useAuth";
 
 const LOGIN_URL = "/bookrental/authenticate";
 
@@ -19,8 +19,8 @@ const USER_REGEX =
 const PWD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
 
 const Login: React.FC = () => {
-  const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { auth, setAuth } = useAuth();
 
   const userRef = useRef<any>(null);
 
@@ -49,18 +49,21 @@ const Login: React.FC = () => {
     try {
       const response = await axios.post(
         LOGIN_URL,
-        {
+        JSON.stringify({
           username: values.username,
           password: values.pwd,
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
         }
-        // JSON.stringify({
-        //   username: values.username,
-        //   password: values.pwd,
-        // })
       );
-      console.log(response);
+      console.log(response.data);
+      if (response.data.status === 1) {
+        message.info(response.data.message);
+      }
 
       if (response.data.jwt) {
+        setAuth(values.username);
         localStorage.setItem("user", JSON.stringify(response.data));
         navigate("../bookrental/category");
         // window.location.reload();
@@ -94,7 +97,11 @@ const Login: React.FC = () => {
           autoComplete="off"
         >
           <Form.Item
-            label="Username"
+            label={
+              <label style={{ color: "white", fontSize: "18px" }}>
+                Username
+              </label>
+            }
             name="username"
             style={{ margin: "0.6rem 0" }}
             tooltip={{
@@ -127,13 +134,15 @@ const Login: React.FC = () => {
             }
           >
             <ExclamationCircleOutlined />
-            &nbsp;4 to 24 characters.
-            <br />
-            Letters, numbers, underscores, hyphens.
+            &nbsp;valid email address with an email prefix and an email domain.
           </p>
 
           <Form.Item
-            label="Password"
+            label={
+              <label style={{ color: "white", fontSize: "18px" }}>
+                Password
+              </label>
+            }
             name="pwd"
             style={{ marginBottom: "0.6rem" }}
             tooltip={{
@@ -175,7 +184,7 @@ const Login: React.FC = () => {
               style={{ width: "100%" }}
               type="primary"
               htmlType="submit"
-              // disabled={!validName || !validPwd ? true : false}
+              disabled={!validName || !validPwd ? true : false}
             >
               Sign in
             </Button>

@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import MemberForm from "./MemberForm";
+import authHeader from "../../../hooks/authHeader";
 
 const MEMBER_URL = "bookrent/member";
 
@@ -185,13 +186,19 @@ const App: React.FC = () => {
     try {
       const row = (await form.validateFields()) as MemberDataType;
       // Patch logic for backend
-      await axios.post(MEMBER_URL, {
-        memberId: row.memberId,
-        email: row.email,
-        name: row.name,
-        mobileNo: row.mobileNo,
-        address: row.address,
-      });
+      await axios.post(
+        MEMBER_URL,
+        {
+          memberId: row.memberId,
+          email: row.email,
+          name: row.name,
+          mobileNo: row.mobileNo,
+          address: row.address,
+        },
+        {
+          headers: authHeader(),
+        }
+      );
 
       const newData = [...data];
       const index = newData.findIndex(

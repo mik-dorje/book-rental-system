@@ -24,7 +24,7 @@ import {
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import CategoryForm from "./CategoryForm";
-import authHeader from "../../../services/authHeader";
+import authHeader from "../../../hooks/authHeader";
 
 const CATEGORY_URL = "bookrental/category";
 
@@ -123,20 +123,35 @@ const App: React.FC = () => {
     record.categoryId === editingKey;
 
   const fetchData = async () => {
-    const result = await axios(CATEGORY_URL, {
-      headers: authHeader(),
-    });
-    console.log(result.data.data);
-    const dataObj = result.data.data;
+    try {
+      const localUser = localStorage.getItem("user");
+      if (localUser) {
+        const user = JSON.parse(localUser);
+        console.log(user.jwt);
 
-    dataObj.sort((a: CategoryDataType, b: CategoryDataType) =>
-      a.categoryId > b.categoryId ? 1 : b.categoryId > a.categoryId ? -1 : 0
-    );
+        const result = await axios.get(CATEGORY_URL, {
+          // headers: authHeader(),
+          headers: {
+            Authorization: `Bearer ${user.jwt}`,
+            // "Content-type": "application/json",
+          },
+        });
+        console.log(result.data.data);
+        const dataObj = result.data.data;
 
-    setData(dataObj);
-    setTableData(dataObj);
-    setLoaded(true);
-    console.log("Categories fetched");
+        dataObj.sort((a: CategoryDataType, b: CategoryDataType) =>
+          a.categoryId > b.categoryId ? 1 : b.categoryId > a.categoryId ? -1 : 0
+        );
+
+        setData(dataObj);
+        setTableData(dataObj);
+        setLoaded(true);
+        console.log("Categories fetched");
+      }
+    } catch (err: any) {
+      console.log(err);
+      message.error(err.message);
+    }
   };
 
   useEffect(() => {
@@ -164,7 +179,7 @@ const App: React.FC = () => {
   const edit = (record: Partial<CategoryDataType>) => {
     console.log(record);
     form.setFieldsValue({
-      categoryId: null,
+      categoryId: 0,
       CategoryName: "",
       CategoryDescription: "",
       ...record,
@@ -173,16 +188,22 @@ const App: React.FC = () => {
   };
 
   const handleDelete = (record: Partial<CategoryDataType>) => {
-    const newData = data.filter(
-      (item) => item.categoryId !== record.categoryId
-    );
-    setData(newData);
-    console.log(record);
+    try {
+      const response = axios.delete(`${CATEGORY_URL}/${record.categoryId}`);
+      const newData = data.filter(
+        (item) => item.categoryId !== record.categoryId
+      );
+      setData(newData);
 
-    message.success({
-      content: `${record.categoryName} removed !`,
-      icon: <DeleteFilled />,
-    });
+      console.log(response);
+      // message.success({
+      //   content: `${record.categoryName} removed !`,
+      //   icon: <DeleteFilled />,
+      // });
+      window.location.reload();
+    } catch (err: any) {
+      message.error(err.message);
+    }
   };
 
   const update = async (record: Partial<CategoryDataType>) => {

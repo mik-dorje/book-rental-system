@@ -134,7 +134,7 @@ const RentBook = () => {
       <Form
         form={form}
         name="basic"
-        labelCol={{ span: 8 }}
+        labelCol={{ span: 7 }}
         wrapperCol={{ span: 14 }}
         initialValues={{ remember: false }}
         onFinish={onFinish}

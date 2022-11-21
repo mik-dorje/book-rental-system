@@ -10,14 +10,13 @@ import {
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 
-const REGISTER_URL = "/bookrent/user";
+const REGISTER_URL = "/bookrental/user";
 
 const USER_REGEX =
   /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 const PWD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
 
 const Register: React.FC = () => {
-  const [form] = Form.useForm();
   const navigate = useNavigate();
 
   const userRef = useRef<any>(null);
@@ -68,16 +67,19 @@ const Register: React.FC = () => {
           userName: values.username,
           password: values.pwd,
           userType: values.userType,
-        })
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+        }
       );
       console.log(response);
       if (response.data.status === 1) {
         message.success(response.data.message);
       }
-      if (response.data.jwt) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-        navigate("../bookrental/category");
-      }
+      // if (response.data.jwt) {
+      //   localStorage.setItem("user", JSON.stringify(response.data));
+      //   navigate("../bookrental/category");
+      // }
     } catch (err) {
       console.log(err);
     }
@@ -106,9 +108,15 @@ const Register: React.FC = () => {
           autoComplete="off"
         >
           <Form.Item
-            label="Username"
+            label={
+              <label style={{ color: "white", fontSize: "18px" }}>
+                Username
+              </label>
+            }
             name="username"
-            style={{ margin: "0.6rem 0" }}
+            style={{
+              margin: "0.6rem 0",
+            }}
             tooltip={{
               title: !userName
                 ? "username empty"
@@ -139,13 +147,15 @@ const Register: React.FC = () => {
             }
           >
             <ExclamationCircleOutlined />
-            &nbsp;4 to 24 characters.
-            <br />
-            Letters, numbers, underscores, hyphens.
+            &nbsp;valid email address with an email prefix and an email domain.
           </p>
 
           <Form.Item
-            label="Password"
+            label={
+              <label style={{ color: "white", fontSize: "18px" }}>
+                Password
+              </label>
+            }
             name="pwd"
             style={{ marginBottom: "0.6rem" }}
             tooltip={{
@@ -183,7 +193,11 @@ const Register: React.FC = () => {
           </p>
 
           <Form.Item
-            label="Confirm Password"
+            label={
+              <label style={{ color: "white", fontSize: "18px" }}>
+                Confirm Password
+              </label>
+            }
             name="matchPwd"
             style={{ marginBottom: "0.6rem" }}
             tooltip={{
@@ -215,7 +229,12 @@ const Register: React.FC = () => {
             &nbsp;Must match the first password input field.
           </p>
 
-          <Form.Item label="Status" name="userType">
+          <Form.Item
+            label={
+              <label style={{ color: "white", fontSize: "18px" }}>Status</label>
+            }
+            name="userType"
+          >
             <Select
               placeholder="Select a user status"
               style={{ marginBottom: "0.3rem", width: "100%" }}

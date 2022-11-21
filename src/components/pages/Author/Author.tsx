@@ -23,6 +23,7 @@ import {
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import AuthorForm from "./AuthorForm";
+import authHeader from "../../../hooks/authHeader";
 
 const AUTHOR_URL = "bookrental/author";
 
@@ -184,12 +185,18 @@ const App: React.FC = () => {
       const row = (await form.validateFields()) as AuthorDataType;
       // Patch logic for backend
 
-      await axios.post(AUTHOR_URL, {
-        authorId: row.authorId,
-        authorName: row.authorName,
-        authorEmail: row.authorEmail,
-        authorMobile: row.authorMobile,
-      });
+      await axios.post(
+        AUTHOR_URL,
+        {
+          authorId: row.authorId,
+          authorName: row.authorName,
+          authorEmail: row.authorEmail,
+          authorMobile: row.authorMobile,
+        },
+        {
+          headers: authHeader(),
+        }
+      );
 
       const newData = [...data];
       const index = newData.findIndex(

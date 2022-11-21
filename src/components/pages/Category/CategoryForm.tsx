@@ -2,6 +2,7 @@ import { Button, Col, Form, Input, message, Modal, Row, Space } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import React from "react";
 import axios from "../../../api/axios";
+import authHeader from "../../../hooks/authHeader";
 import { CategoryDataType } from "./Category";
 
 const CATEGORY_URL = "bookrental/category";
@@ -32,8 +33,7 @@ const CategoryForm = ({
           categoryDescription: values.categoryDescription,
         }),
         {
-          headers: { "Content-Type": "application/json" },
-          // withCredentials: true,
+          headers: authHeader(),
         }
       );
       console.log(JSON.stringify(response?.data));

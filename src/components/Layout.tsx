@@ -15,6 +15,7 @@ import Icon, {
 import { Avatar, Layout, Menu, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 import logo from "../images/3dlogo.png";
 
 const { Header, Sider, Content } = Layout;
@@ -69,6 +70,7 @@ const subItems = [
 
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const { auth, setAuth } = useAuth();
 
   // Find another way
   useEffect(() => {
@@ -158,11 +160,20 @@ const App: React.FC = () => {
             Book Rental System
           </Typography.Title>
 
-          <Avatar
-            size="large"
-            style={{ backgroundColor: "#87d068", marginRight: "8px" }}
-            icon={<UserOutlined />}
-          />
+          {auth ? (
+            <Avatar
+              size="large"
+              style={{ backgroundColor: "#87d068", marginRight: "8px" }}
+            >
+              {auth.charAt(0).toUpperCase()}
+            </Avatar>
+          ) : (
+            <Avatar
+              size="large"
+              style={{ backgroundColor: "#87d068", marginRight: "8px" }}
+              icon={<UserOutlined />}
+            />
+          )}
         </Header>
         <Content
           className="content"
