@@ -1,14 +1,13 @@
 import Icon, {
   BookFilled,
   DatabaseFilled,
-  FallOutlined,
+  DiffFilled,
   FolderOpenFilled,
   IdcardFilled,
   InteractionFilled,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  RiseOutlined,
   SolutionOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -43,7 +42,7 @@ const menuItems = [
     key: "4",
     icon: SolutionOutlined,
     label: "Member",
-    path: "/bookrent/member",
+    path: "/bookrental/member",
   },
 ];
 
@@ -51,26 +50,20 @@ const subItems = [
   {
     key: "6",
     icon: InteractionFilled,
-    label: "History",
-    path: "/bookrent/booktransaction",
+    label: "Book History",
+    path: "/bookrental/booktransaction",
   },
   {
     key: "7",
-    icon: RiseOutlined,
-    label: "Rent Book",
-    path: "/bookrent/booktransaction/rent-book",
-  },
-  {
-    key: "8",
-    icon: FallOutlined,
-    label: "Return Book",
-    path: "/bookrent/booktransaction/return-book",
+    icon: DiffFilled,
+    label: "Add Transaction",
+    path: "/bookrental/booktransaction/add-book-transaction",
   },
 ];
 
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { auth, setAuth } = useAuth();
+  const { auth } = useAuth();
 
   // Find another way
   useEffect(() => {

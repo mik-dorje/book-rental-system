@@ -69,17 +69,19 @@ const Register: React.FC = () => {
           userType: values.userType,
         }),
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
       console.log(response);
       if (response.data.status === 1) {
         message.success(response.data.message);
       }
-      // if (response.data.jwt) {
-      //   localStorage.setItem("user", JSON.stringify(response.data));
-      //   navigate("../bookrental/category");
-      // }
+      if (response.data.jwt) {
+        localStorage.setItem("user", JSON.stringify(response.data));
+        navigate("../bookrental/category");
+      }
     } catch (err) {
       console.log(err);
     }
@@ -241,12 +243,17 @@ const Register: React.FC = () => {
               onChange={onUserTypeChange}
               options={[
                 {
-                  value: "ADMIN",
                   label: "Admin",
+                  value: "ADMIN",
                 },
                 {
-                  value: "USER",
+                  label: "Super Admin",
+                  value: "SUPER_ADMIN",
+                  disabled: true,
+                },
+                {
                   label: "User",
+                  value: "USER",
                   disabled: true,
                 },
               ]}

@@ -225,7 +225,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
                 mode="multiple"
                 allowClear
                 placeholder="Please select Authors"
-                optionFilterProp="children"
+                optionFilterProp="items"
                 filterOption={(input, option) =>
                   (option?.label ?? "")
                     .toLowerCase()
@@ -248,7 +248,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
                 showSearch
                 placeholder="Please select Category"
                 allowClear
-                optionFilterProp="children"
+                optionFilterProp="items"
                 filterOption={(input, option) =>
                   (option?.label ?? "")
                     .toLowerCase()

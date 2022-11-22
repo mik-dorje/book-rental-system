@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import axios from "../../../api/axios";
 import { useNavigate } from "react-router-dom";
 
-const TRANSACTION_URL = "bookrent/booktransaction";
+const TRANSACTION_URL = "bookrental/booktransaction";
 
 const SingleTransaction = () => {
   const params = useParams();

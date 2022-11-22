@@ -18,10 +18,10 @@ import { originalMemberData } from "../Member/Member";
 import moment from "moment";
 
 const BOOK_URL = "/bookrental/book";
-const MEMBER_URL = "bookrent/member";
+const MEMBER_URL = "bookrental/member";
 const RETURN_URL = "bookrent/booktransaction/return-book";
 
-const RentBook = () => {
+const ReturnBook = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -161,7 +161,7 @@ const RentBook = () => {
             style={{ width: "100%", marginLeft: "16px" }}
             placeholder="Please select book"
             allowClear
-            optionFilterProp="children"
+            optionFilterProp="items"
             filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
@@ -248,4 +248,4 @@ const RentBook = () => {
   );
 };
 
-export default RentBook;
+export default ReturnBook;

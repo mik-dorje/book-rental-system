@@ -7,7 +7,7 @@ import { BookDataType, originalBookData } from "../Book/Book";
 import { AuthorDataType, originalAuthorData } from "../Author/Author";
 import { MemberDataType, originalMemberData } from "../Member/Member";
 
-const TRANSACTION_URL = "bookrent/booktransaction";
+const TRANSACTION_URL = "bookrental/booktransaction";
 
 export interface TransactionDataType {
   // key: string;

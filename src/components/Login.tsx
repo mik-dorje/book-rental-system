@@ -62,12 +62,12 @@ const Login: React.FC = () => {
         message.info(response.data.message);
       }
 
-      if (response.data.jwt) {
-        setAuth(values.username);
-        localStorage.setItem("user", JSON.stringify(response.data));
-        navigate("../bookrental/category");
-        // window.location.reload();
-      }
+      // if (response.data.jwt) {
+      //   setAuth(values.username);
+      //   localStorage.setItem("user", JSON.stringify(response.data));
+      //   navigate("../bookrental/category");
+      //   window.location.reload();
+      // }
     } catch (err: any) {
       message.error(err?.message);
     }

@@ -1,4 +1,4 @@
-import { RollbackOutlined } from "@ant-design/icons";
+import { LoadingOutlined, RollbackOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -8,6 +8,7 @@ import {
   Row,
   Select,
   Space,
+  Spin,
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
@@ -18,10 +19,10 @@ import { originalMemberData } from "../Member/Member";
 import moment from "moment";
 
 const BOOK_URL = "/bookrental/book";
-const MEMBER_URL = "bookrent/member";
-const RENT_URL = "bookrent/booktransaction/rent-book";
+const MEMBER_URL = "bookrental/member";
+const ADD_TRANSACTION_URL = "bookrental/booktransaction/add-book-transaction";
 
-const RentBook = () => {
+const RentReturn = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -51,16 +52,20 @@ const RentBook = () => {
     const newRentData = {
       bookId: values.bookId,
       toDate: values.toDate._d.toISOString().slice(0, 10),
-      rentType: "RENT",
+      rentType: values.rentType,
       memberId: values.memberId,
     };
     console.log(newRentData);
 
     try {
-      const response = await axios.post(RENT_URL, JSON.stringify(newRentData), {
-        headers: { "Content-Type": "application/json" },
-        // withCredentials: true,
-      });
+      const response = await axios.post(
+        ADD_TRANSACTION_URL,
+        JSON.stringify(newRentData),
+        {
+          headers: { "Content-Type": "application/json" },
+          // withCredentials: true,
+        }
+      );
 
       // console.log(JSON.stringify(response?.data));
       // const oneBook = books.filter((book) => book.bookId === values.bookId)[0]
@@ -83,8 +88,15 @@ const RentBook = () => {
   const handleModalCancel = () => {
     // setModalOpen(false);
   };
+  const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
   const memberOptions = members.map((member) => {
+    if (member.name === "") {
+      return {
+        label: <Spin indicator={antIcon} />,
+        value: "",
+      };
+    }
     return {
       label: member.name,
       value: member.memberId,
@@ -92,15 +104,13 @@ const RentBook = () => {
   });
 
   // For multiple books select
-
   const bookOptions = books.map((book) => {
     if (book.bookName === "") {
       return {
-        label: "",
+        label: <Spin indicator={antIcon} />,
         value: "",
       };
     }
-
     return {
       label: book?.bookName,
       value: book?.bookId,
@@ -134,7 +144,7 @@ const RentBook = () => {
       <Form
         form={form}
         name="basic"
-        labelCol={{ span: 7 }}
+        labelCol={{ span: 8 }}
         wrapperCol={{ span: 14 }}
         initialValues={{ remember: false }}
         onFinish={onFinish}
@@ -142,7 +152,7 @@ const RentBook = () => {
       >
         <Divider>
           <Typography.Title level={4} style={{ color: "white" }}>
-            RENT BOOK
+            RENT/RETURN BOOK
           </Typography.Title>
         </Divider>
 
@@ -162,8 +172,8 @@ const RentBook = () => {
             placeholder="Please select book"
             allowClear
             optionFilterProp="items"
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            filterOption={(input, option: any) =>
+              (option?.label ?? "")?.toLowerCase().includes(input.toLowerCase())
             }
             options={bookOptions}
           />
@@ -183,11 +193,28 @@ const RentBook = () => {
             style={{ width: "100%", marginLeft: "16px" }}
             placeholder="Please select member"
             allowClear
-            optionFilterProp="children"
-            filterOption={(input, option) =>
+            optionFilterProp="items"
+            filterOption={(input, option: any) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
             options={memberOptions}
+          />
+        </Form.Item>
+        <Form.Item label="Transaction Type" name="rentType">
+          <Select
+            placeholder="Select a transaction type"
+            style={{ width: "100%", marginLeft: "16px" }}
+            // onChange={onUserTypeChange}
+            options={[
+              {
+                label: "Rent",
+                value: "RENT",
+              },
+              {
+                label: "Return",
+                value: "RETURN",
+              },
+            ]}
           />
         </Form.Item>
 
@@ -232,4 +259,4 @@ const RentBook = () => {
   );
 };
 
-export default RentBook;
+export default RentReturn;

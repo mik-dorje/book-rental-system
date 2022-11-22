@@ -3,7 +3,7 @@ import React from "react";
 import axios from "../../../api/axios";
 import { TransactionDataType } from "./Transaction";
 
-const TRANSACTION_URL = "bookrent/booktransaction";
+const TRANSACTION_URL = "bookrental/booktransaction";
 
 interface ModalProps {
   data: TransactionDataType[];

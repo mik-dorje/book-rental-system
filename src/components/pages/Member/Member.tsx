@@ -26,7 +26,7 @@ import { Link } from "react-router-dom";
 import MemberForm from "./MemberForm";
 import authHeader from "../../../hooks/authHeader";
 
-const MEMBER_URL = "bookrent/member";
+const MEMBER_URL = "bookrental/member";
 
 export interface MemberDataType {
   // key: string;

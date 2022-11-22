@@ -5,7 +5,7 @@ import axios from "../../../api/axios";
 import { useNavigate } from "react-router-dom";
 import { RollbackOutlined } from "@ant-design/icons";
 
-const MEMBER_URL = "bookrent/member";
+const MEMBER_URL = "bookrental/member";
 
 const SingleMember = () => {
   const params = useParams();

@@ -125,6 +125,7 @@ const App: React.FC = () => {
   const fetchData = async () => {
     try {
       const localUser = localStorage.getItem("user");
+
       if (localUser) {
         const user = JSON.parse(localUser);
         console.log(user.jwt);
@@ -187,9 +188,11 @@ const App: React.FC = () => {
     setEditingKey(record?.categoryId);
   };
 
-  const handleDelete = (record: Partial<CategoryDataType>) => {
+  const handleDelete = async (record: Partial<CategoryDataType>) => {
     try {
-      const response = axios.delete(`${CATEGORY_URL}/${record.categoryId}`);
+      const response = await axios.delete(
+        `${CATEGORY_URL}/${record.categoryId}`
+      );
       const newData = data.filter(
         (item) => item.categoryId !== record.categoryId
       );

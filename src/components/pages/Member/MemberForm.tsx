@@ -3,7 +3,7 @@ import React from "react";
 import axios from "../../../api/axios";
 import { MemberDataType } from "./Member";
 
-const MEMBER_URL = "bookrent/member";
+const MEMBER_URL = "bookrental/member";
 
 interface ModalProps {
   data: MemberDataType[];
