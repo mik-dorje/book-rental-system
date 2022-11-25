@@ -20,7 +20,8 @@ const PWD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { auth, setAuth } = useAuth();
+  const { setAuth } = useAuth();
+  const [isLogging, setIsLogging] = useState(false);
 
   const userRef = useRef<any>(null);
 
@@ -45,6 +46,7 @@ const Login: React.FC = () => {
   }, [pwd]);
 
   const onFinish = async (values: any) => {
+    setIsLogging(true);
     console.log(values);
     try {
       const response = await axios.post(
@@ -62,15 +64,15 @@ const Login: React.FC = () => {
         message.info(response.data.message);
       }
 
-      // if (response.data.jwt) {
-      //   setAuth(values.username);
-      //   localStorage.setItem("user", JSON.stringify(response.data));
-      //   navigate("../bookrental/category");
-      //   window.location.reload();
-      // }
+      if (response.data.jwt) {
+        setAuth(values.username);
+        localStorage.setItem("user", JSON.stringify(response.data));
+        navigate("../bookrental/category");
+      }
     } catch (err: any) {
       message.error(err?.message);
     }
+    setIsLogging(false);
   };
 
   return (
@@ -128,7 +130,7 @@ const Login: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "46vh" }}
+            style={{ top: "47vh" }}
             className={
               userFocus && userName && !validName ? "instructions" : "offscreen"
             }
@@ -167,7 +169,7 @@ const Login: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "58.5vh" }}
+            style={{ top: "59.5vh" }}
             className={pwdFocus && !validPwd ? "instructions" : "offscreen"}
           >
             <ExclamationCircleOutlined />
@@ -186,7 +188,7 @@ const Login: React.FC = () => {
               htmlType="submit"
               disabled={!validName || !validPwd ? true : false}
             >
-              Sign in
+              {isLogging ? "Signing in" : "Sign in"}
             </Button>
           </Form.Item>
         </Form>

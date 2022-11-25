@@ -6,6 +6,7 @@ import TransactionForm from "./TransactionForm";
 import { BookDataType, originalBookData } from "../Book/Book";
 import { AuthorDataType, originalAuthorData } from "../Author/Author";
 import { MemberDataType, originalMemberData } from "../Member/Member";
+import authHeader from "../../../hooks/authHeader";
 
 const TRANSACTION_URL = "bookrental/booktransaction";
 
@@ -148,7 +149,7 @@ const Transaction: React.FC = () => {
     record.bookTransactionId === editingKey;
 
   const fetchData = async () => {
-    const result = await axios(TRANSACTION_URL);
+    const result = await axios.get(TRANSACTION_URL, { headers: authHeader() });
     console.log(result.data.data);
     const dataObj = result.data.data;
     setData(dataObj);
@@ -163,20 +164,18 @@ const Transaction: React.FC = () => {
 
   useEffect(() => {
     setTableData(data);
-    // if (typedWord) {
-    //   const resultArray = data?.filter(
-    //     (item) =>
-    //       item?.categoryId
-    //         ?.toString()
-    //         .toLowerCase()
-    //         .includes(typedWord.toLowerCase()) ||
-    //       item?.categoryName?.toLowerCase().includes(typedWord.toLowerCase()) ||
-    //       item?.categoryDescription
-    //         ?.toLowerCase()
-    //         .includes(typedWord.toLowerCase())
-    //   );
-    //   setTableData(resultArray);
-    // }
+    if (typedWord) {
+      const resultArray = data?.filter(
+        (item) =>
+          item?.bookTransactionId
+            ?.toString()
+            .toLowerCase()
+            .includes(typedWord.toLowerCase()) ||
+          item?.code?.toLowerCase().includes(typedWord.toLowerCase()) ||
+          item?.rentType.toLowerCase().includes(typedWord.toLowerCase())
+      );
+      setTableData(resultArray);
+    }
   }, [typedWord, data]);
 
   const cancel = () => {
@@ -289,7 +288,7 @@ const Transaction: React.FC = () => {
               rowClassName="editable-row"
               pagination={{
                 onChange: cancel,
-                pageSize: 5,
+                pageSize: 8,
               }}
               scroll={{ x: "40%" }}
             />

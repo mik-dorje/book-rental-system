@@ -9,8 +9,10 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const REGISTER_URL = "/bookrental/user";
+const LOGIN_URL = "/bookrental/authenticate";
 
 const USER_REGEX =
   /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
@@ -18,7 +20,7 @@ const PWD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-
+  const { setAuth } = useAuth();
   const userRef = useRef<any>(null);
 
   const [userName, setUserName] = useState("");
@@ -35,6 +37,8 @@ const Register: React.FC = () => {
 
   const [userType, setUserType] = useState("");
   const [validType, setValidType] = useState(false);
+
+  const [isRegister, setIsRegister] = useState(false);
 
   useEffect(() => {
     userRef?.current?.focus();
@@ -59,7 +63,7 @@ const Register: React.FC = () => {
 
   const onFinish = async (values: any) => {
     console.log(values);
-
+    setIsRegister(true);
     try {
       const response = await axios.post(
         REGISTER_URL,
@@ -76,15 +80,29 @@ const Register: React.FC = () => {
       );
       console.log(response);
       if (response.data.status === 1) {
-        message.success(response.data.message);
+        message.success(response.data.message, 1);
+        if (response.data.message === "User  saved successfully") {
+          const result = await axios.post(
+            LOGIN_URL,
+            JSON.stringify({
+              username: values.username,
+              password: values.pwd,
+            }),
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+          if (result.data.jwt) {
+            setAuth(values.username);
+            localStorage.setItem("user", JSON.stringify(result.data));
+            navigate("../bookrental/category");
+          }
+        }
       }
-      if (response.data.jwt) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-        navigate("../bookrental/category");
-      }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      message.error(err.message);
     }
+    setIsRegister(false);
   };
 
   return (
@@ -143,7 +161,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "33vh" }}
+            style={{ top: "33.5vh" }}
             className={
               userFocus && userName && !validName ? "instructions" : "offscreen"
             }
@@ -182,7 +200,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "45.5vh" }}
+            style={{ top: "46vh" }}
             className={pwdFocus && !validPwd ? "instructions" : "offscreen"}
           >
             <ExclamationCircleOutlined />
@@ -224,7 +242,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "57.5vh" }}
+            style={{ top: "58vh" }}
             className={matchFocus && !validMatch ? "instructions" : "offscreen"}
           >
             <ExclamationCircleOutlined />
@@ -271,7 +289,7 @@ const Register: React.FC = () => {
                   : false
               }
             >
-              Register
+              {isRegister ? "Registering" : "Register"}
             </Button>
           </Form.Item>
         </Form>

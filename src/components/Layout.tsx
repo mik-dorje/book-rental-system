@@ -130,7 +130,10 @@ const App: React.FC = () => {
           </Menu>
 
           <Menu theme="dark" mode="inline">
-            <Menu.Item key={null}>
+            <Menu.Item
+              key={null}
+              onClick={() => localStorage.removeItem("user")}
+            >
               <LogoutOutlined style={{ fontSize: "22px" }} />
               <span>EXIT</span>
               <Link to="/" />

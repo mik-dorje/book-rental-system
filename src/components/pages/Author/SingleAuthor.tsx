@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import axios from "../../../api/axios";
 import { useNavigate } from "react-router-dom";
 import { RollbackOutlined } from "@ant-design/icons";
+import authHeader from "../../../hooks/authHeader";
 
 const AUTHOR_URL = "bookrental/author";
 
@@ -15,7 +16,9 @@ const SingleAuthor = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await axios(`${AUTHOR_URL}/${id}`);
+      const response = await axios.get(`${AUTHOR_URL}/${id}`, {
+        headers: authHeader(),
+      });
       setauthorDetail(response.data.data);
     };
     fetchData();

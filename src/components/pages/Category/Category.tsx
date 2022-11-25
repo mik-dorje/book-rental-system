@@ -21,8 +21,8 @@ import {
   DeleteOutlined,
   CheckOutlined,
   RollbackOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
 import CategoryForm from "./CategoryForm";
 import authHeader from "../../../hooks/authHeader";
 
@@ -94,7 +94,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
           style={{ margin: 0 }}
           rules={[
             {
-              required: true,
+              required: false,
               message: `Please Input ${title}!`,
             },
           ]}
@@ -114,6 +114,8 @@ const App: React.FC = () => {
   const [editingKey, setEditingKey] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
 
+  const [isUpdate, setIsUpdate] = useState(false);
+
   const [typedWord, setTypedWord] = useState<any>(null);
   const [tableData, setTableData] =
     useState<CategoryDataType[]>(originalCategoryData);
@@ -124,31 +126,23 @@ const App: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const localUser = localStorage.getItem("user");
+      const result = await axios.get(CATEGORY_URL, {
+        headers: authHeader(),
+        // headers: {
+        //   Authorization: `Bearer ${user.jwt}`,
+        // },
+      });
+      console.log(result.data.data);
+      const dataObj = result.data.data;
 
-      if (localUser) {
-        const user = JSON.parse(localUser);
-        console.log(user.jwt);
+      dataObj.sort((a: CategoryDataType, b: CategoryDataType) =>
+        a.categoryId > b.categoryId ? 1 : b.categoryId > a.categoryId ? -1 : 0
+      );
 
-        const result = await axios.get(CATEGORY_URL, {
-          // headers: authHeader(),
-          headers: {
-            Authorization: `Bearer ${user.jwt}`,
-            // "Content-type": "application/json",
-          },
-        });
-        console.log(result.data.data);
-        const dataObj = result.data.data;
-
-        dataObj.sort((a: CategoryDataType, b: CategoryDataType) =>
-          a.categoryId > b.categoryId ? 1 : b.categoryId > a.categoryId ? -1 : 0
-        );
-
-        setData(dataObj);
-        setTableData(dataObj);
-        setLoaded(true);
-        console.log("Categories fetched");
-      }
+      setData(dataObj);
+      setTableData(dataObj);
+      setLoaded(true);
+      console.log("Categories fetched");
     } catch (err: any) {
       console.log(err);
       message.error(err.message);
@@ -178,7 +172,6 @@ const App: React.FC = () => {
   }, [typedWord, data]);
 
   const edit = (record: Partial<CategoryDataType>) => {
-    console.log(record);
     form.setFieldsValue({
       categoryId: 0,
       CategoryName: "",
@@ -191,32 +184,43 @@ const App: React.FC = () => {
   const handleDelete = async (record: Partial<CategoryDataType>) => {
     try {
       const response = await axios.delete(
-        `${CATEGORY_URL}/${record.categoryId}`
+        `${CATEGORY_URL}/${record.categoryId}`,
+        { headers: authHeader() }
       );
       const newData = data.filter(
         (item) => item.categoryId !== record.categoryId
       );
       setData(newData);
 
-      console.log(response);
-      // message.success({
-      //   content: `${record.categoryName} removed !`,
-      //   icon: <DeleteFilled />,
-      // });
-      window.location.reload();
+      if (response.status === 200) {
+        message.success({
+          content: response.data.message,
+          icon: <DeleteFilled />,
+        });
+      }
     } catch (err: any) {
       message.error(err.message);
     }
   };
 
   const update = async (record: Partial<CategoryDataType>) => {
+    setIsUpdate(true);
+    // if (record.categoryName === "" || record.categoryDescription === "") {
+    //   message.info("Edit field cannot be empty");
+    //   setIsUpdate(false);
+    //   return;
+    // }
     try {
       const row = (await form.validateFields()) as CategoryDataType;
-      await axios.post(CATEGORY_URL, {
-        categoryId: row.categoryId,
-        categoryName: row.categoryName,
-        categoryDescription: row.categoryDescription,
-      });
+      const response = await axios.post(
+        CATEGORY_URL,
+        {
+          categoryId: row.categoryId,
+          categoryName: row.categoryName,
+          categoryDescription: row.categoryDescription,
+        },
+        { headers: authHeader() }
+      );
       const newData = [...data];
 
       const index = newData.findIndex(
@@ -237,10 +241,13 @@ const App: React.FC = () => {
         setData(newData);
         setEditingKey(null);
       }
-      message.info(`${row.categoryName} updated !`);
+      if (response.data.status === 1) {
+        message.info(`${row.categoryName} updated !`);
+      }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+    setIsUpdate(false);
   };
 
   const cancel = () => {
@@ -249,7 +256,7 @@ const App: React.FC = () => {
 
   const columns = [
     {
-      title: "S.N",
+      title: "ID",
       dataIndex: "categoryId",
       width: "15%",
       editable: true,
@@ -259,9 +266,9 @@ const App: React.FC = () => {
       dataIndex: "categoryName",
       width: "20%",
       editable: true,
-      render: (_: any, record: CategoryDataType) => (
-        <Link to={record?.categoryId?.toString()}>{record.categoryName}</Link>
-      ),
+      // render: (_: any, record: CategoryDataType) => (
+      //   <Link to={record?.categoryId?.toString()}>{record.categoryName}</Link>
+      // ),
     },
     {
       title: "Description",
@@ -280,7 +287,13 @@ const App: React.FC = () => {
             <Tooltip title="Update">
               <Button
                 shape="circle"
-                icon={<CheckOutlined />}
+                icon={
+                  isUpdate ? (
+                    <LoadingOutlined style={{ color: "#057499" }} />
+                  ) : (
+                    <CheckOutlined style={{ color: "#057499" }} />
+                  )
+                }
                 onClick={() => update(record)}
               />
             </Tooltip>
@@ -288,7 +301,7 @@ const App: React.FC = () => {
             <Tooltip title="Back">
               <Button
                 shape="circle"
-                icon={<RollbackOutlined />}
+                icon={<RollbackOutlined style={{ color: "#057499" }} />}
                 onClick={cancel}
               />
             </Tooltip>
@@ -305,7 +318,7 @@ const App: React.FC = () => {
               <Tooltip title="Delete">
                 <Button
                   shape="circle"
-                  icon={<DeleteOutlined />}
+                  icon={<DeleteOutlined style={{ color: "#057499" }} />}
                   disabled={editingKey !== null}
                 />
               </Tooltip>
@@ -313,7 +326,7 @@ const App: React.FC = () => {
             <Tooltip title="Edit">
               <Button
                 shape="circle"
-                icon={<EditOutlined />}
+                icon={<EditOutlined style={{ color: "#057499" }} />}
                 disabled={editingKey !== null}
                 onClick={() => edit(record)}
               />
@@ -346,6 +359,7 @@ const App: React.FC = () => {
         <CategoryForm
           data={data}
           setData={setData}
+          fetchData={fetchData}
           modalOpen={modalOpen}
           setModalOpen={setModalOpen}
         />

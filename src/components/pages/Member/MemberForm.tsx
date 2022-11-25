@@ -1,6 +1,7 @@
 import { Button, Col, Form, Input, message, Modal, Row, Space } from "antd";
-import React from "react";
+import React, { useState } from "react";
 import axios from "../../../api/axios";
+import authHeader from "../../../hooks/authHeader";
 import { MemberDataType } from "./Member";
 
 const MEMBER_URL = "bookrental/member";
@@ -8,15 +9,28 @@ const MEMBER_URL = "bookrental/member";
 interface ModalProps {
   data: MemberDataType[];
   modalOpen: boolean;
+  fetchData(): void;
   setData: React.Dispatch<React.SetStateAction<MemberDataType[]>>;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
+const MemberForm = ({
+  data,
+  setData,
+  fetchData,
+  modalOpen,
+  setModalOpen,
+}: ModalProps) => {
   const [formModal] = Form.useForm();
 
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [address, setAddress] = useState("");
+  const [isSubmit, setIsSubmit] = useState(false);
+
   const onFinish = async (values: any) => {
-    console.log({ values });
+    setIsSubmit(true);
 
     try {
       const response = await axios.post(
@@ -28,36 +42,19 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
           mobileNo: values.mobileNo,
           address: values.address,
         }),
-        {
-          headers: { "Content-Type": "application/json" },
-          // withCredentials: true,
-        }
+        { headers: authHeader() }
       );
-      console.log(JSON.stringify(response?.data));
-      setData([
-        ...data,
-        {
-          // key: values.memberId ? values.memberId : data.length + 1,
-          memberId: values.memberId ? values.memberId : data.length + 1,
-          name: values.name,
-          email: values.email,
-          mobileNo: values.mobileNo,
-          address: values.address,
-        },
-      ]);
-
-      formModal.resetFields();
-      setModalOpen(false);
 
       if (response.status === 200) {
         message.success(response.data.message);
       }
-
-      window.location.reload();
-      // message.success(`${values.name} added !`);
+      formModal.resetFields();
+      setModalOpen(false);
+      fetchData();
     } catch (err) {
       console.log(err);
     }
+    setIsSubmit(false);
   };
 
   const handleModalCancel = () => {
@@ -86,48 +83,17 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
         // onFinishFailed={onFinishFailed}
         // autoComplete="off"
       >
-        <Form.Item
-          label="Name"
-          name="name"
-          rules={[{ required: true, message: "Please input name!" }]}
-        >
-          <Input />
+        <Form.Item label="Name" name="name">
+          <Input onChange={(e) => setName(e.target.value)} />
         </Form.Item>
-        <Form.Item
-          label="Email"
-          name="email"
-          rules={[
-            {
-              required: true,
-              message: "Please input email!",
-            },
-          ]}
-        >
-          <Input />
+        <Form.Item label="Email" name="email">
+          <Input onChange={(e) => setEmail(e.target.value)} />
         </Form.Item>
-        <Form.Item
-          label="Mobile"
-          name="mobileNo"
-          rules={[
-            {
-              required: true,
-              message: "Please input mobile!",
-            },
-          ]}
-        >
-          <Input />
+        <Form.Item label="Mobile" name="mobileNo">
+          <Input onChange={(e) => setMobile(e.target.value)} />
         </Form.Item>
-        <Form.Item
-          label="Address"
-          name="address"
-          rules={[
-            {
-              required: true,
-              message: "Please input address!",
-            },
-          ]}
-        >
-          <Input />
+        <Form.Item label="Address" name="address">
+          <Input onChange={(e) => setAddress(e.target.value)} />
         </Form.Item>
 
         <Row>
@@ -137,9 +103,12 @@ const MemberForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
                 <Button
                   type="primary"
                   htmlType="submit"
-                  style={{ width: "75px" }}
+                  style={{ width: "95px" }}
+                  disabled={
+                    !name || !email || !mobile || !address ? true : false
+                  }
                 >
-                  Add
+                  {isSubmit ? "Submitting" : "Submit"}
                 </Button>
               </Form.Item>
               <Form.Item>

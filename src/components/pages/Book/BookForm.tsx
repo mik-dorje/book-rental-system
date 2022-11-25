@@ -12,6 +12,7 @@ import {
 } from "antd";
 import React, { useEffect, useState } from "react";
 import axios from "../../../api/axios";
+import authHeader from "../../../hooks/authHeader";
 import { originalAuthorData } from "../Author/Author";
 import { originalCategoryData } from "../Category/Category";
 import { BookDataType } from "./Book";
@@ -23,11 +24,18 @@ const AUTHOR_URL = "bookrental/author";
 interface ModalProps {
   data: BookDataType[];
   modalOpen: boolean;
+  fetchData(): void;
   setData: React.Dispatch<React.SetStateAction<BookDataType[]>>;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
+const BookForm = ({
+  data,
+  setData,
+  fetchData,
+  modalOpen,
+  setModalOpen,
+}: ModalProps) => {
   const [formModal] = Form.useForm();
 
   const [categories, setCategories] = useState(originalCategoryData);
@@ -35,12 +43,18 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
 
   const [imgfile, setImgFile] = useState("");
 
+  const [isSubmit, setIsSubmit] = useState(false);
+
   const fetchCategories = async () => {
-    const result = await axios(CATEGORY_URL);
+    const result = await axios.get(CATEGORY_URL, {
+      headers: authHeader(),
+    });
     setCategories(result.data.data);
   };
   const fetchAuthors = async () => {
-    const result = await axios(AUTHOR_URL);
+    const result = await axios.get(AUTHOR_URL, {
+      headers: authHeader(),
+    });
     setAuthors(result.data.data);
   };
 
@@ -70,8 +84,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
   });
 
   const imgFilehandler = (e: any) => {
-    console.log(e.target.files[0]);
-
+    // console.log(e.target.files[0]);
     if (e.target.files.length !== 0) {
       setImgFile(e.target.files[0]);
     }
@@ -79,7 +92,14 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
 
   // Form Modal Functions
   const onFinish = async (values: any) => {
-    console.log({ values });
+    setIsSubmit(true);
+    console.log(values);
+    // const isEmpty = Object.values(values).every((x) => x === null || x === "");
+    // if (!isEmpty) {
+    //   message.error("Please fill in all book details!");
+    //   setIsSubmit(false);
+    //   return;
+    // }
     const formdata = new FormData();
     formdata.append("bookImage", imgfile);
     formdata.append("bookName", values.bookName);
@@ -89,43 +109,37 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
     formdata.append("stockCount", values.stockCount);
     formdata.append(
       "publishedDate",
-      values.publishedDate._d.toISOString().slice(0, 10)
+      values.publishedDate._d.toISOString().slice(0, 10) || ""
     );
     formdata.append("categoryId", values.categoryId);
     formdata.append("authorId", values.authorId);
 
     try {
-      const response = await axios.post(BOOK_URL, formdata, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const localUser = localStorage.getItem("user");
+      if (localUser) {
+        const oneUser = JSON.parse(localUser);
+        if (oneUser.jwt) {
+          const response = await axios.post(BOOK_URL, formdata, {
+            headers: {
+              Authorization: "Bearer " + oneUser.jwt,
+              "Content-Type": "multipart/form-data",
+            },
+          });
 
-      console.log(JSON.stringify(response?.data));
-      setData([
-        ...data,
-        {
-          // key: values.bookId ? values.bookId : data.length + 1,
-          bookId: values.bookId ? values.bookId : data.length + 1,
-          bookName: values.bookName,
-          noOfPages: values.noOfPages,
-          isbn: values.isbn,
-          rating: values.rating,
-          stockCount: values.stockCount,
-          publishedDate: values.publishedDate._d.toISOString().slice(0, 10),
-          categoryId: values.categoryId,
-          authorId: values.authorId,
-          bookImage: imgfile,
-        },
-      ]);
+          console.log(JSON.stringify(response?.data));
 
-      formModal.resetFields();
-      setModalOpen(false);
-      if (response.status === 200) {
-        message.success(response.data.message);
+          if (response.status === 200) {
+            message.success(response.data.message);
+          }
+          fetchData();
+          formModal.resetFields();
+          setModalOpen(false);
+        }
       }
-      window.location.reload();
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      message.error(err.message);
     }
+    setIsSubmit(false);
   };
 
   return (
@@ -156,7 +170,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
             <Form.Item
               label="Name"
               name="bookName"
-              rules={[{ required: false, message: "Please input book name!" }]}
+              rules={[{ required: true, message: "Please input book name!" }]}
             >
               <Input type="string" />
             </Form.Item>
@@ -165,7 +179,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="isbn"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please input ISBN!",
                 },
               ]}
@@ -177,7 +191,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="rating"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please input rating!",
                 },
               ]}
@@ -189,7 +203,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="noOfPages"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please input number of pages!",
                 },
               ]}
@@ -203,7 +217,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="stockCount"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please input stock count!",
                 },
               ]}
@@ -215,7 +229,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="authorId"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please input author ID!",
                 },
               ]}
@@ -239,7 +253,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="categoryId"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please input category ID!",
                 },
               ]}
@@ -262,7 +276,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="publishedDate"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please input published date!",
                 },
               ]}
@@ -279,7 +293,7 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
               name="bookImage"
               rules={[
                 {
-                  required: false,
+                  required: true,
                   message: "Please upload book image!",
                 },
               ]}
@@ -298,8 +312,12 @@ const BookForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
           <Col xs={{ offset: 9 }}>
             <Space size="middle">
               <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  Add
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  style={{ width: "95px" }}
+                >
+                  {isSubmit ? "Submitting" : "Submit"}
                 </Button>
               </Form.Item>
               <Form.Item>

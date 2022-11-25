@@ -1,6 +1,6 @@
 import { Button, Col, Form, Input, message, Modal, Row, Space } from "antd";
 import TextArea from "antd/lib/input/TextArea";
-import React from "react";
+import React, { useState } from "react";
 import axios from "../../../api/axios";
 import authHeader from "../../../hooks/authHeader";
 import { CategoryDataType } from "./Category";
@@ -10,6 +10,7 @@ const CATEGORY_URL = "bookrental/category";
 interface ModalProps {
   data: CategoryDataType[];
   modalOpen: boolean;
+  fetchData(): void;
   setData: React.Dispatch<React.SetStateAction<CategoryDataType[]>>;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -17,13 +18,19 @@ interface ModalProps {
 const CategoryForm = ({
   data,
   setData,
+  fetchData,
   modalOpen,
   setModalOpen,
 }: ModalProps) => {
   const [formModal] = Form.useForm();
+  const [isAdding, setIsAdding] = useState(false);
+
+  const [catName, setCatName] = useState("");
+  const [catDescrip, setCatDescrip] = useState("");
 
   const onFinish = async (values: any) => {
     console.log({ values });
+    setIsAdding(true);
     try {
       const response = await axios.post(
         CATEGORY_URL,
@@ -37,25 +44,26 @@ const CategoryForm = ({
         }
       );
       console.log(JSON.stringify(response?.data));
-      setData([
-        ...data,
-        {
-          // key: values.categoryId ? values.categoryId : data.length + 1,
-          categoryId: values.categoryId ? values.categoryId : data.length + 1,
-          categoryName: values.categoryName,
-          categoryDescription: values.categoryDescription,
-        },
-      ]);
+      // setData([
+      //   ...data,
+      //   {
+      //     // key: values.categoryId ? values.categoryId : data.length + 1,
+      //     categoryId: values.categoryId ? values.categoryId : data.length + 1,
+      //     categoryName: values.categoryName,
+      //     categoryDescription: values.categoryDescription,
+      //   },
+      // ]);
 
+      fetchData();
       formModal.resetFields();
       setModalOpen(false);
       if (response.status === 200) {
         message.success(response.data.message);
       }
-      window.location.reload();
     } catch (err) {
       console.log(err);
     }
+    setIsAdding(false);
   };
 
   const handleModalCancel = () => {
@@ -92,24 +100,14 @@ const CategoryForm = ({
       >
         <Input type="number" />
       </Form.Item> */}
-        <Form.Item
-          label="Name"
-          name="categoryName"
-          rules={[{ required: true, message: "Please input category name!" }]}
-        >
-          <Input />
+        <Form.Item label="Name" name="categoryName">
+          <Input onChange={(e) => setCatName(e.target.value)} />
         </Form.Item>
-        <Form.Item
-          label="Description"
-          name="categoryDescription"
-          rules={[
-            {
-              required: true,
-              message: "Please input category description!",
-            },
-          ]}
-        >
-          <TextArea style={{ height: "115px" }} />
+        <Form.Item label="Description" name="categoryDescription">
+          <TextArea
+            style={{ height: "115px" }}
+            onChange={(e) => setCatDescrip(e.target.value)}
+          />
         </Form.Item>
 
         <Row>
@@ -119,9 +117,10 @@ const CategoryForm = ({
                 <Button
                   type="primary"
                   htmlType="submit"
-                  style={{ width: "75px" }}
+                  disabled={!catName || !catDescrip ? true : false}
+                  style={{ width: "90px" }}
                 >
-                  Add
+                  {isAdding ? "Submitting" : "Submit"}
                 </Button>
               </Form.Item>
               <Form.Item>

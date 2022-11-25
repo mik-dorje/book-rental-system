@@ -1,6 +1,7 @@
 import { Button, Col, Form, Input, message, Modal, Row, Space } from "antd";
-import React from "react";
+import React, { useState } from "react";
 import axios from "../../../api/axios";
+import authHeader from "../../../hooks/authHeader";
 import { AuthorDataType } from "./Author";
 
 const AUTHOR_URL = "bookrental/author";
@@ -8,15 +9,27 @@ const AUTHOR_URL = "bookrental/author";
 interface ModalProps {
   data: AuthorDataType[];
   modalOpen: boolean;
+  fetchData(): void;
   setData: React.Dispatch<React.SetStateAction<AuthorDataType[]>>;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AuthorForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
+const AuthorForm = ({
+  data,
+  setData,
+  fetchData,
+  modalOpen,
+  setModalOpen,
+}: ModalProps) => {
   const [formModal] = Form.useForm();
 
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [isSubmit, setIsSubmit] = useState(false);
+
   const onFinish = async (values: any) => {
-    console.log({ values });
+    setIsSubmit(true);
 
     try {
       const response = await axios.post(
@@ -27,30 +40,19 @@ const AuthorForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
           authorEmail: values.authorEmail,
           authorMobile: values.authorMobile,
         }),
-        {
-          headers: { "Content-Type": "application/json" },
-          // withCredentials: true,
-        }
+        { headers: authHeader() }
       );
-      console.log(JSON.stringify(response?.data));
-      setData([
-        ...data,
-        {
-          // key: values.authorId ? values.authorId : data.length + 1,
-          authorId: values.authorId ? values.authorId : data.length + 1,
-          authorName: values.authorName,
-          authorEmail: values.authorEmail,
-          authorMobile: values.authorMobile,
-        },
-      ]);
 
+      if (response.data.status === 1) {
+        message.success(`${values.authorName} added !`);
+      }
+      fetchData();
       formModal.resetFields();
       setModalOpen(false);
-      window.location.reload();
-      message.success(`${values.authorName} added !`);
     } catch (err) {
       console.log(err);
     }
+    setIsSubmit(false);
   };
 
   const handleModalCancel = () => {
@@ -79,45 +81,14 @@ const AuthorForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
         // onFinishFailed={onFinishFailed}
         // autoComplete="off"
       >
-        {/* <Form.Item
-              label="ID"
-              name="authorId"
-              rules={[
-                { required: false, message: "Please input category ID!" },
-              ]}
-            >
-              <Input type="number" />
-            </Form.Item> */}
-        <Form.Item
-          label="Name"
-          name="authorName"
-          rules={[{ required: true, message: "Please input author name!" }]}
-        >
-          <Input />
+        <Form.Item label="Name" name="authorName">
+          <Input onChange={(e) => setName(e.target.value)} />
         </Form.Item>
-        <Form.Item
-          label="Email"
-          name="authorEmail"
-          rules={[
-            {
-              required: true,
-              message: "Please input author email!",
-            },
-          ]}
-        >
-          <Input />
+        <Form.Item label="Email" name="authorEmail">
+          <Input onChange={(e) => setEmail(e.target.value)} />
         </Form.Item>
-        <Form.Item
-          label="Mobile"
-          name="authorMobile"
-          rules={[
-            {
-              required: true,
-              message: "Please input author mobile!",
-            },
-          ]}
-        >
-          <Input />
+        <Form.Item label="Mobile" name="authorMobile">
+          <Input onChange={(e) => setMobile(e.target.value)} />
         </Form.Item>
 
         <Row>
@@ -127,9 +98,10 @@ const AuthorForm = ({ data, setData, modalOpen, setModalOpen }: ModalProps) => {
                 <Button
                   type="primary"
                   htmlType="submit"
-                  style={{ width: "75px" }}
+                  style={{ width: "95px" }}
+                  disabled={!name || !email || !mobile ? true : false}
                 >
-                  Add
+                  {isSubmit ? "Submitting" : "Submit"}
                 </Button>
               </Form.Item>
               <Form.Item>

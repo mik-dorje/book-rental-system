@@ -20,8 +20,8 @@ import {
   EditOutlined,
   RollbackOutlined,
   CheckOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
 import AuthorForm from "./AuthorForm";
 import authHeader from "../../../hooks/authHeader";
 
@@ -34,7 +34,6 @@ export interface AuthorDataType {
   authorEmail: string;
   authorMobile: string;
 }
-
 
 export const originalAuthorData: AuthorDataType[] = [
   {
@@ -123,8 +122,10 @@ const App: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const isEditing = (record: AuthorDataType) => record.authorId === editingKey;
 
+  const [isUpdate, setIsUpdate] = useState(false);
+
   const fetchData = async () => {
-    const result = await axios(AUTHOR_URL);
+    const result = await axios.get(AUTHOR_URL, { headers: authHeader() });
     console.log(result.data.data);
     const dataObj = result.data.data;
 
@@ -170,18 +171,28 @@ const App: React.FC = () => {
     setEditingKey(record.authorId);
   };
 
-  const handleDelete = (record: Partial<AuthorDataType>) => {
-    const newData = data.filter((item) => item.authorId !== record.authorId);
-    setData(newData);
-    console.log(record);
-    message.success({
-      content: `${record.authorName} removed !`,
-      icon: <DeleteFilled />,
-    });
+  const handleDelete = async (record: Partial<AuthorDataType>) => {
+    try {
+      const response = await axios.delete(`${AUTHOR_URL}/${record.authorId}`, {
+        headers: authHeader(),
+      });
+      const newData = data.filter((item) => item.authorId !== record.authorId);
+      setData(newData);
+      if (response.status === 200) {
+        message.success({
+          content: `${record.authorName} removed !`,
+          icon: <DeleteFilled />,
+        });
+      }
+    } catch (err: any) {
+      message.error(err.message);
+    }
+
     // no delete api yet
   };
 
   const update = async (record: Partial<AuthorDataType>) => {
+    setIsUpdate(true);
     try {
       const row = (await form.validateFields()) as AuthorDataType;
       // Patch logic for backend
@@ -211,6 +222,7 @@ const App: React.FC = () => {
         });
 
         setData(newData);
+
         message.info(`${row.authorName} updated !`);
         setEditingKey(null);
       } else {
@@ -221,6 +233,7 @@ const App: React.FC = () => {
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+    setIsUpdate(false);
   };
 
   const cancel = () => {
@@ -229,7 +242,7 @@ const App: React.FC = () => {
 
   const columns = [
     {
-      title: "S.N",
+      title: "ID",
       dataIndex: "authorId",
       width: "15%",
       editable: true,
@@ -239,9 +252,9 @@ const App: React.FC = () => {
       dataIndex: "authorName",
       width: "20%",
       editable: true,
-      render: (_: any, record: AuthorDataType) => (
-        <Link to={record.authorId?.toString()}>{record.authorName}</Link>
-      ),
+      // render: (_: any, record: AuthorDataType) => (
+      //   <Link to={record.authorId?.toString()}>{record.authorName}</Link>
+      // ),
     },
     {
       title: "Email",
@@ -266,7 +279,13 @@ const App: React.FC = () => {
             <Tooltip title="Update">
               <Button
                 shape="circle"
-                icon={<CheckOutlined />}
+                icon={
+                  isUpdate ? (
+                    <LoadingOutlined style={{ color: "#057499" }} />
+                  ) : (
+                    <CheckOutlined style={{ color: "#057499" }} />
+                  )
+                }
                 onClick={() => update(record)}
               />
             </Tooltip>
@@ -274,7 +293,7 @@ const App: React.FC = () => {
             <Tooltip title="Back">
               <Button
                 shape="circle"
-                icon={<RollbackOutlined />}
+                icon={<RollbackOutlined style={{ color: "#057499" }} />}
                 onClick={cancel}
               />
             </Tooltip>
@@ -291,7 +310,7 @@ const App: React.FC = () => {
               <Tooltip title="Delete">
                 <Button
                   shape="circle"
-                  icon={<DeleteOutlined />}
+                  icon={<DeleteOutlined style={{ color: "#057499" }} />}
                   disabled={editingKey !== null}
                 />
               </Tooltip>
@@ -299,7 +318,7 @@ const App: React.FC = () => {
             <Tooltip title="Edit">
               <Button
                 shape="circle"
-                icon={<EditOutlined />}
+                icon={<EditOutlined style={{ color: "#057499" }} />}
                 disabled={editingKey !== null}
                 onClick={() => edit(record)}
               />
@@ -332,6 +351,7 @@ const App: React.FC = () => {
         <AuthorForm
           data={data}
           setData={setData}
+          fetchData={fetchData}
           modalOpen={modalOpen}
           setModalOpen={setModalOpen}
         />

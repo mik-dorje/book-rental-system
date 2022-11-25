@@ -17,8 +17,9 @@ import { useNavigate } from "react-router-dom";
 import { originalBookData } from "../Book/Book";
 import { originalMemberData } from "../Member/Member";
 import moment from "moment";
+import authHeader from "../../../hooks/authHeader";
 
-const BOOK_URL = "/bookrental/book";
+const BOOK_URL = "/bookrental/book/get-book-id-name";
 const MEMBER_URL = "bookrental/member";
 const ADD_TRANSACTION_URL = "bookrental/booktransaction/add-book-transaction";
 
@@ -29,13 +30,15 @@ const RentReturn = () => {
   const [books, setBooks] = useState(originalBookData);
   const [members, setMembers] = useState(originalMemberData);
 
+  const [isSubmit, setIsSubmit] = useState(false);
+
   const fetchBooks = async () => {
-    const result = await axios(BOOK_URL);
+    const result = await axios.get(BOOK_URL, { headers: authHeader() });
     setBooks(result.data.data);
     console.log("book fetched");
   };
   const fetchMembers = async () => {
-    const result = await axios(MEMBER_URL);
+    const result = await axios.get(MEMBER_URL, { headers: authHeader() });
     setMembers(result.data.data);
     console.log("members fetched");
   };
@@ -49,23 +52,17 @@ const RentReturn = () => {
 
   // Form Modal Functions
   const onFinish = async (values: any) => {
-    const newRentData = {
-      bookId: values.bookId,
-      toDate: values.toDate._d.toISOString().slice(0, 10),
-      rentType: values.rentType,
-      memberId: values.memberId,
-    };
-    console.log(newRentData);
-
+    setIsSubmit(true);
     try {
-      const response = await axios.post(
-        ADD_TRANSACTION_URL,
-        JSON.stringify(newRentData),
-        {
-          headers: { "Content-Type": "application/json" },
-          // withCredentials: true,
-        }
-      );
+      const newRentData = {
+        bookId: values.bookId,
+        toDate: values.toDate._d.toISOString().slice(0, 10),
+        rentType: values.rentType,
+        memberId: values.memberId,
+      };
+      const response = await axios.post(ADD_TRANSACTION_URL, newRentData, {
+        headers: authHeader(),
+      });
 
       // console.log(JSON.stringify(response?.data));
       // const oneBook = books.filter((book) => book.bookId === values.bookId)[0]
@@ -83,9 +80,11 @@ const RentReturn = () => {
     } catch (err) {
       console.log(err);
     }
+    setIsSubmit(false);
   };
 
-  const handleModalCancel = () => {
+  const handleReset = (values: any) => {
+    form.resetFields();
     // setModalOpen(false);
   };
   const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
@@ -161,7 +160,7 @@ const RentReturn = () => {
           name="bookId"
           rules={[
             {
-              required: false,
+              required: true,
               message: "Please input book!",
             },
           ]}
@@ -183,7 +182,7 @@ const RentReturn = () => {
           name="memberId"
           rules={[
             {
-              required: false,
+              required: true,
               message: "Please input member!",
             },
           ]}
@@ -200,7 +199,16 @@ const RentReturn = () => {
             options={memberOptions}
           />
         </Form.Item>
-        <Form.Item label="Transaction Type" name="rentType">
+        <Form.Item
+          label="Transaction Type"
+          name="rentType"
+          rules={[
+            {
+              required: true,
+              message: "Please input member!",
+            },
+          ]}
+        >
           <Select
             placeholder="Select a transaction type"
             style={{ width: "100%", marginLeft: "16px" }}
@@ -223,7 +231,7 @@ const RentReturn = () => {
           name="toDate"
           rules={[
             {
-              required: false,
+              required: true,
               message: "Please input return date!",
             },
           ]}
@@ -242,14 +250,14 @@ const RentReturn = () => {
               <Button
                 type="primary"
                 htmlType="submit"
-                // style={{ width: "75px" }}
+                style={{ width: "95px" }}
               >
-                Rent
+                {isSubmit ? "Submitting" : "submit"}
               </Button>
             </Form.Item>
             <Form.Item>
-              <Button type="primary" danger onClick={handleModalCancel}>
-                Cancel
+              <Button type="primary" danger onClick={handleReset}>
+                Reset
               </Button>
             </Form.Item>
           </Space>

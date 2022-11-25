@@ -32,6 +32,7 @@
 }
 
 /* background for all layout outlet */
+
 .content {
   position: relative;
 }
@@ -94,6 +95,16 @@
   40% {
     box-shadow: 0 2.5em 0 0;
   }
+}
+
+.ant-table.ant-table-bordered
+  > .ant-table-container
+  > .ant-table-content
+  > table
+  > thead
+  > tr
+  > th {
+  background: rgb(237, 230, 241);
 }
 
 /* *::-webkit-scrollbar {

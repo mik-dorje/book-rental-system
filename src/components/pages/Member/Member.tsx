@@ -21,8 +21,8 @@ import {
   RollbackOutlined,
   DeleteOutlined,
   EditOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
 import MemberForm from "./MemberForm";
 import authHeader from "../../../hooks/authHeader";
 
@@ -124,8 +124,10 @@ const App: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const isEditing = (record: MemberDataType) => record.memberId === editingKey;
 
+  const [isUpdate, setIsUpdate] = useState(false);
+
   const fetchData = async () => {
-    const result = await axios(MEMBER_URL);
+    const result = await axios.get(MEMBER_URL, { headers: authHeader() });
     console.log(result.data.data);
     const dataObj = result.data.data;
     dataObj.sort((a: MemberDataType, b: MemberDataType) =>
@@ -171,22 +173,32 @@ const App: React.FC = () => {
     setEditingKey(record.memberId);
   };
 
-  const handleDelete = (record: Partial<MemberDataType>) => {
-    const newData = data.filter((item) => item.memberId !== record.memberId);
-    setData(newData);
-    console.log(record);
+  const handleDelete = async (record: Partial<MemberDataType>) => {
+    try {
+      const response = await axios.delete(`${MEMBER_URL}/${record.memberId}`, {
+        headers: authHeader(),
+      });
+      const newData = data.filter((item) => item.memberId !== record.memberId);
+      setData(newData);
+      console.log(record);
 
-    message.success({
-      content: `${record.name} removed !`,
-      icon: <DeleteFilled />,
-    });
+      if (response.status === 200) {
+        message.success({
+          content: response.data.message,
+          icon: <DeleteFilled />,
+        });
+      }
+    } catch (err: any) {
+      message.error(err.message);
+    }
   };
 
   const update = async (record: Partial<MemberDataType>) => {
+    setIsUpdate(true);
     try {
       const row = (await form.validateFields()) as MemberDataType;
       // Patch logic for backend
-      await axios.post(
+      const response = await axios.post(
         MEMBER_URL,
         {
           memberId: row.memberId,
@@ -199,7 +211,6 @@ const App: React.FC = () => {
           headers: authHeader(),
         }
       );
-
       const newData = [...data];
       const index = newData.findIndex(
         (item) => record.memberId === item.memberId
@@ -212,17 +223,19 @@ const App: React.FC = () => {
         });
 
         setData(newData);
-
         setEditingKey(null);
       } else {
         newData.push(row);
         setData(newData);
         setEditingKey(null);
       }
-      message.info(`${row.name} updated !`);
+      if (response.data.status === 1) {
+        message.info(`${row.name} updated !`);
+      }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+    setIsUpdate(false);
   };
 
   const cancel = () => {
@@ -231,7 +244,7 @@ const App: React.FC = () => {
 
   const columns = [
     {
-      title: "S.N",
+      title: "ID",
       dataIndex: "memberId",
       width: "10%",
       editable: true,
@@ -242,9 +255,9 @@ const App: React.FC = () => {
       dataIndex: "name",
       width: "15%",
       editable: true,
-      render: (_: any, record: MemberDataType) => (
-        <Link to={record.memberId.toString()}>{record.name}</Link>
-      ),
+      // render: (_: any, record: MemberDataType) => (
+      //   <Link to={record.memberId.toString()}>{record.name}</Link>
+      // ),
     },
     {
       title: "Email",
@@ -275,7 +288,13 @@ const App: React.FC = () => {
             <Tooltip title="Update">
               <Button
                 shape="circle"
-                icon={<CheckOutlined />}
+                icon={
+                  isUpdate ? (
+                    <LoadingOutlined style={{ color: "#057499" }} />
+                  ) : (
+                    <CheckOutlined style={{ color: "#057499" }} />
+                  )
+                }
                 onClick={() => update(record)}
               />
             </Tooltip>
@@ -283,7 +302,7 @@ const App: React.FC = () => {
             <Tooltip title="Back">
               <Button
                 shape="circle"
-                icon={<RollbackOutlined />}
+                icon={<RollbackOutlined style={{ color: "#057499" }} />}
                 onClick={cancel}
               />
             </Tooltip>
@@ -300,7 +319,7 @@ const App: React.FC = () => {
               <Tooltip title="Delete">
                 <Button
                   shape="circle"
-                  icon={<DeleteOutlined />}
+                  icon={<DeleteOutlined style={{ color: "#057499" }} />}
                   disabled={editingKey !== null}
                 />
               </Tooltip>
@@ -308,7 +327,7 @@ const App: React.FC = () => {
             <Tooltip title="Edit">
               <Button
                 shape="circle"
-                icon={<EditOutlined />}
+                icon={<EditOutlined style={{ color: "#057499" }} />}
                 disabled={editingKey !== null}
                 onClick={() => edit(record)}
               />
@@ -341,6 +360,7 @@ const App: React.FC = () => {
         <MemberForm
           data={data}
           setData={setData}
+          fetchData={fetchData}
           modalOpen={modalOpen}
           setModalOpen={setModalOpen}
         />
