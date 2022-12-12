@@ -161,7 +161,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "33.5vh" }}
+            style={{ top: "24.45vh" }}
             className={
               userFocus && userName && !validName ? "instructions" : "offscreen"
             }
@@ -200,7 +200,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "46vh" }}
+            style={{ top: "37vh" }}
             className={pwdFocus && !validPwd ? "instructions" : "offscreen"}
           >
             <ExclamationCircleOutlined />
@@ -242,7 +242,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "58vh" }}
+            style={{ top: "49.5vh" }}
             className={matchFocus && !validMatch ? "instructions" : "offscreen"}
           >
             <ExclamationCircleOutlined />
@@ -288,6 +288,7 @@ const Register: React.FC = () => {
                   ? true
                   : false
               }
+              loading={isRegister}
             >
               {isRegister ? "Registering" : "Register"}
             </Button>

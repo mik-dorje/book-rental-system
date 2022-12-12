@@ -316,8 +316,9 @@ const BookForm = ({
                   type="primary"
                   htmlType="submit"
                   style={{ width: "95px" }}
+                  loading={isSubmit}
                 >
-                  {isSubmit ? "Submitting" : "Submit"}
+                  Submit
                 </Button>
               </Form.Item>
               <Form.Item>

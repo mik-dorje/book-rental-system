@@ -130,7 +130,7 @@ const Login: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "47vh" }}
+            style={{ top: "24.5vh" }}
             className={
               userFocus && userName && !validName ? "instructions" : "offscreen"
             }
@@ -169,7 +169,7 @@ const Login: React.FC = () => {
             />
           </Form.Item>
           <p
-            style={{ top: "59.5vh" }}
+            style={{ top: "36.5vh" }}
             className={pwdFocus && !validPwd ? "instructions" : "offscreen"}
           >
             <ExclamationCircleOutlined />
@@ -187,6 +187,7 @@ const Login: React.FC = () => {
               type="primary"
               htmlType="submit"
               disabled={!validName || !validPwd ? true : false}
+              loading={isLogging}
             >
               {isLogging ? "Signing in" : "Sign in"}
             </Button>

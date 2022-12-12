@@ -1,4 +1,4 @@
-import { LoadingOutlined, RollbackOutlined } from "@ant-design/icons";
+import { LoadingOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -13,7 +13,6 @@ import {
 } from "antd";
 import React, { useEffect, useState } from "react";
 import axios from "../../../api/axios";
-import { useNavigate } from "react-router-dom";
 import { originalBookData } from "../Book/Book";
 import { originalMemberData } from "../Member/Member";
 import moment from "moment";
@@ -25,7 +24,6 @@ const ADD_TRANSACTION_URL = "bookrental/booktransaction/add-book-transaction";
 
 const RentReturn = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate();
 
   const [books, setBooks] = useState(originalBookData);
   const [members, setMembers] = useState(originalMemberData);
@@ -126,25 +124,21 @@ const RentReturn = () => {
         boxShadow: "0 0 8px 2px #e5e1e0",
       }}
     >
-      <Row>
+      {/* <Row justify="center">
         <Button
-          type="primary"
-          icon={<RollbackOutlined style={{ fontSize: "18px" }} />}
-          onClick={() => {
-            navigate(-1);
-          }}
+          type="default"
         >
-          <Typography.Text strong style={{ color: "white" }}>
-            Back
+          <Typography.Text strong style={{ color: "black" }}>
+            New Book Transaction
           </Typography.Text>
         </Button>
-      </Row>
+      </Row> */}
 
       <Form
         form={form}
         name="basic"
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 14 }}
+        labelCol={{ xs: { span: 9 }, md: { span: 5 } }}
+        wrapperCol={{ xs: { span: 13 }, md: { span: 16 } }}
         initialValues={{ remember: false }}
         onFinish={onFinish}
         className="rent-book-form"
@@ -155,28 +149,6 @@ const RentReturn = () => {
           </Typography.Title>
         </Divider>
 
-        <Form.Item
-          label="Book"
-          name="bookId"
-          rules={[
-            {
-              required: true,
-              message: "Please input book!",
-            },
-          ]}
-        >
-          <Select
-            showSearch
-            style={{ width: "100%", marginLeft: "16px" }}
-            placeholder="Please select book"
-            allowClear
-            optionFilterProp="items"
-            filterOption={(input, option: any) =>
-              (option?.label ?? "")?.toLowerCase().includes(input.toLowerCase())
-            }
-            options={bookOptions}
-          />
-        </Form.Item>
         <Form.Item
           label="Member"
           name="memberId"
@@ -197,6 +169,28 @@ const RentReturn = () => {
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
             options={memberOptions}
+          />
+        </Form.Item>
+        <Form.Item
+          label="Book"
+          name="bookId"
+          rules={[
+            {
+              required: true,
+              message: "Please input book!",
+            },
+          ]}
+        >
+          <Select
+            showSearch
+            style={{ width: "100%", marginLeft: "16px" }}
+            placeholder="Please select book"
+            allowClear
+            optionFilterProp="items"
+            filterOption={(input, option: any) =>
+              (option?.label ?? "")?.toLowerCase().includes(input.toLowerCase())
+            }
+            options={bookOptions}
           />
         </Form.Item>
         <Form.Item
@@ -251,8 +245,9 @@ const RentReturn = () => {
                 type="primary"
                 htmlType="submit"
                 style={{ width: "95px" }}
+                loading={isSubmit}
               >
-                {isSubmit ? "Submitting" : "submit"}
+                submit
               </Button>
             </Form.Item>
             <Form.Item>

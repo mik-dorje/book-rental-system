@@ -100,8 +100,9 @@ const AuthorForm = ({
                   htmlType="submit"
                   style={{ width: "95px" }}
                   disabled={!name || !email || !mobile ? true : false}
+                  loading={isSubmit}
                 >
-                  {isSubmit ? "Submitting" : "Submit"}
+                  Submit
                 </Button>
               </Form.Item>
               <Form.Item>

@@ -1,15 +1,11 @@
 import { Button, Col, Divider, Rate, Row, Typography } from "antd";
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import axios from "../../../api/axios";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import back from "../../../images/back.jpg";
 import { RollbackOutlined } from "@ant-design/icons";
 import { AuthorDataType, originalAuthorData } from "../Author/Author";
-import authHeader from "../../../hooks/authHeader";
-
-const BOOK_URL = "/bookrental/book";
 
 interface catDataType {
   categoryId: number | null;
@@ -50,25 +46,12 @@ export const originalSingleBookData: SingleBookDataType = {
 };
 
 const SingleBook = () => {
-  const params = useParams();
-  const id = params.id;
-  const navigate = useNavigate();
-  const [bookDetail, setbookDetail] = useState<SingleBookDataType>(
-    originalSingleBookData
-  );
-  const [pos, setPos] = useState({ x: -45, y: 15, z: 20 });
-  const [isLoaded, setIsLoaded] = useState(false);
+  const location = useLocation();
+  const oneBook: SingleBookDataType = location.state;
 
-  const fetchData = async () => {
-    const response = await axios.get(`${BOOK_URL}/${id}`, {
-      headers: authHeader(),
-    });
-    setbookDetail(response.data.data);
-    setIsLoaded(true);
-  };
-  useEffect(() => {
-    fetchData();
-  });
+  const navigate = useNavigate();
+
+  const [pos, setPos] = useState({ x: -45, y: 15, z: 20 });
 
   const moveBook = (e: any) => {
     var x = e.clientX - window.innerWidth / 2;
@@ -93,7 +76,7 @@ const SingleBook = () => {
           </Typography.Text>
         </Button>
       </Row>
-      {isLoaded ? (
+      {oneBook ? (
         <Row className="main-book-container" justify="space-between">
           <Col className="book-3D" md={{ span: 9 }} xs={{ span: 24 }}>
             <div className="container">
@@ -114,7 +97,7 @@ const SingleBook = () => {
                 <img
                   className="front"
                   alt="bookimage"
-                  src={`data:image/png;base64,${bookDetail.imagePath}`}
+                  src={`data:image/png;base64,${oneBook.imagePath}`}
                 />
               </div>
             </div>
@@ -126,22 +109,22 @@ const SingleBook = () => {
                 level={1}
                 style={{ color: "rgb(219, 214, 214)", fontSize: "40px" }}
               >
-                {bookDetail.bookName}
+                {oneBook.bookName}
               </Typography.Title>
             </Divider>
 
             <Typography.Title
-              level={2}
+              level={3}
               style={{ color: "#272c32", fontFamily: "poppins" }}
             >
-              Description: {bookDetail.category.categoryDescription}
+              Description: {oneBook.category.categoryDescription}
             </Typography.Title>
 
             <div
               className="sub-details"
               style={{
                 color: "#272c32",
-                fontSize: "24px",
+                fontSize: "20px",
                 fontWeight: 600,
                 margin: "0 25px",
                 display: "flex",
@@ -150,23 +133,23 @@ const SingleBook = () => {
               }}
             >
               <div style={{ textAlign: "left" }}>
-                <p>Category: {bookDetail.category.categoryName}</p>
-                <p>ISBN: {bookDetail.isbn}</p>
-                <p>Total Pages: {bookDetail.noOfPages}</p>
+                <p>Category: {oneBook.category.categoryName}</p>
+                <p>ISBN: {oneBook.isbn}</p>
+                <p>Total Pages: {oneBook.noOfPages}</p>
               </div>
               <div style={{ textAlign: "left" }}>
-                <p>Stock Count:{bookDetail.stockCount}</p>
-                <p>Published On: {bookDetail.publishedDate}</p>
+                <p>Stock Count:{oneBook.stockCount}</p>
+                <p>Published On: {oneBook.publishedDate}</p>
                 <p>
                   Authors:{" "}
-                  {bookDetail.author?.map((item) => (
+                  {oneBook.author?.map((item) => (
                     <span>{item.authorName}</span>
                   ))}
                 </p>
               </div>
             </div>
 
-            <Rate allowHalf disabled value={bookDetail.rating} />
+            <Rate allowHalf disabled value={oneBook.rating} />
           </Col>
         </Row>
       ) : (

@@ -289,7 +289,9 @@ const App: React.FC = () => {
       // width: "10%",
       editable: true,
       render: (_: any, record: BookDataType) => (
-        <Link to={record?.bookId?.toString()}>{record.bookName}</Link>
+        <Link to={record?.bookId?.toString()} state={record}>
+          {record.bookName}
+        </Link>
       ),
     },
     {

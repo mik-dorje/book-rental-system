@@ -13,9 +13,9 @@ import Icon, {
 } from "@ant-design/icons";
 import { Avatar, Layout, Menu, Typography } from "antd";
 import React, { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import logo from "../images/3dlogo.png";
+import logo from "../images/newlogo.png";
 
 const { Header, Sider, Content } = Layout;
 
@@ -64,13 +64,14 @@ const subItems = [
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { auth } = useAuth();
+  const location = useLocation();
 
   // Find another way
   useEffect(() => {
     if (window.innerWidth < 684) {
       setCollapsed(true);
     }
-  }, []);
+  }, [location]);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -82,7 +83,16 @@ const App: React.FC = () => {
         collapsed={collapsed}
       >
         <div className="logo-box">
-          <img src={logo} alt="Logo" width="55px" />
+          <div
+            style={{
+              background: "white",
+              width: "47px",
+              height: "45px",
+              borderRadius: "50%",
+            }}
+          >
+            <img src={logo} alt="Logo" width="50px" />
+          </div>
         </div>
 
         <div
@@ -96,7 +106,12 @@ const App: React.FC = () => {
           <Menu
             theme="dark"
             mode="inline"
-            defaultSelectedKeys={["1"]}
+            // defaultSelectedKeys={["1"]}
+            defaultSelectedKeys={[
+              menuItems
+                .filter((item) => item.path === location.pathname)[0]
+                ?.key?.toString(),
+            ]}
             defaultOpenKeys={["5"]}
             style={{ marginTop: "8px" }}
           >
@@ -159,9 +174,18 @@ const App: React.FC = () => {
           {auth ? (
             <Avatar
               size="large"
-              style={{ backgroundColor: "#87d068", marginRight: "8px" }}
+              style={{
+                backgroundColor: "#87d068",
+                marginRight: "8px",
+                textAlign: "center",
+              }}
             >
-              {auth.charAt(0).toUpperCase()}
+              <Typography.Title
+                level={4}
+                style={{ color: "white", marginTop: "5px" }}
+              >
+                {auth.charAt(0).toUpperCase()}
+              </Typography.Title>
             </Avatar>
           ) : (
             <Avatar

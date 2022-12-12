@@ -194,7 +194,7 @@ const Transaction: React.FC = () => {
       dataIndex: "book",
       // width: "10%",
       editable: true,
-      render: (_: any, record: any) => <span>{record.book.bookName},</span>,
+      render: (_: any, record: any) => <span>{record.book.bookName}</span>,
     },
     {
       title: "Code",
@@ -288,7 +288,7 @@ const Transaction: React.FC = () => {
               rowClassName="editable-row"
               pagination={{
                 onChange: cancel,
-                pageSize: 8,
+                pageSize: 6,
               }}
               scroll={{ x: "40%" }}
             />

@@ -119,8 +119,9 @@ const CategoryForm = ({
                   htmlType="submit"
                   disabled={!catName || !catDescrip ? true : false}
                   style={{ width: "90px" }}
+                  loading={isAdding}
                 >
-                  {isAdding ? "Submitting" : "Submit"}
+                  Submit
                 </Button>
               </Form.Item>
               <Form.Item>

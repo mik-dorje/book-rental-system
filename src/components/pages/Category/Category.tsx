@@ -69,7 +69,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
       <InputNumber
         disabled
         style={{
-          width: "90%",
+          // width: "90%",
           backgroundColor: "#fff",
           border: " 1px dotted #8b8a8b",
           borderRadius: "6px",
@@ -78,7 +78,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
     ) : (
       <Input
         style={{
-          width: "90%",
+          // width: "90%",
           backgroundColor: "#fff",
           border: " 1px dotted #8b8a8b",
           borderRadius: "6px",
@@ -258,7 +258,7 @@ const App: React.FC = () => {
     {
       title: "ID",
       dataIndex: "categoryId",
-      width: "15%",
+      width: "12%",
       editable: true,
     },
     {
@@ -273,7 +273,7 @@ const App: React.FC = () => {
     {
       title: "Description",
       dataIndex: "categoryDescription",
-      width: "20%",
+      // width: "20%",
       editable: true,
     },
     {

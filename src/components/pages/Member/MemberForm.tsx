@@ -107,8 +107,9 @@ const MemberForm = ({
                   disabled={
                     !name || !email || !mobile || !address ? true : false
                   }
+                  loading={isSubmit}
                 >
-                  {isSubmit ? "Submitting" : "Submit"}
+                  Submit
                 </Button>
               </Form.Item>
               <Form.Item>
